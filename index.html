@@ -7,7 +7,7 @@
 <meta name="description" content="여덟 살 입학식부터 서른다섯 살 통장 잔고까지. 진로 40가지, 직업 102종, 로또 1등 814만분의 1. 한국 인생 시뮬레이션 웹게임.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="한국에서 살아남기">
-<meta property="og:description" content="여덟 살 입학식부터 서른다섯 살 통장 잔고까지. 학원 보낼지 게임 시킬지는 내 마음.">
+<meta property="og:description" content="여덟 살 입학식부터 서른다섯 살 통장 잔고까지. 내 연봉은 대한민국 상위 몇 %일까?">
 <meta property="og:image" content="https://taehuicho00.github.io/korea-survival/og.png">
 <meta property="og:url" content="https://taehuicho00.github.io/korea-survival/">
 <meta name="twitter:card" content="summary_large_image">
@@ -208,6 +208,25 @@ h1,h2,h3{text-wrap:balance;margin:0}
 
 /* 결산 */
 .bigtitle{font-family:var(--f-display);font-size:34px;line-height:1.1}
+.ranks{display:flex;flex-direction:column;gap:10px}
+.rank{border-radius:16px;padding:16px;background:linear-gradient(160deg,#1E2238,#2B2F4F);color:#F3F1EA;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.rank.net{background:linear-gradient(160deg,#2A1E2E,#4A2B3E)}
+.rank .label{color:#C9CCE0}
+.rk-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rk-tier{font-size:13px;font-weight:700;background:#F2C94C;color:#2A2414;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.rank.net .rk-tier{background:#F28AB8;color:#2A1420}
+.rk-big{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rk-big b{font-family:var(--f-display);font-weight:400;font-size:44px;line-height:1;color:#FFF}
+.rk-big span{font-size:15px;font-weight:700;color:#E3E1F0}
+.rk-line{margin:0;font-size:14.5px;line-height:1.55;color:#E3E1F0}
+.rk-line strong{color:#FFE27A}
+.rank.net .rk-line strong{color:#FFC2DD}
+.dots{display:grid;grid-template-columns:repeat(20,1fr);gap:3px}
+.dots i{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.16)}
+.dots i.a{background:rgba(255,255,255,.55)}
+.dots i.me{background:#FFE27A;box-shadow:0 0 0 2px #FFF,0 0 10px 2px rgba(255,226,122,.8);transform:scale(1.35)}
+.dots.net i.me{background:#FF9CCB;box-shadow:0 0 0 2px #FFF,0 0 10px 2px rgba(255,156,203,.8)}
+@media (prefers-reduced-motion:no-preference){.dots i{animation:dot-in .3s both;animation-delay:var(--d)}@keyframes dot-in{from{opacity:0;transform:scale(.3)}}.dots i.me{animation:dot-me .5s 900ms both}@keyframes dot-me{from{opacity:0;transform:scale(3)}to{opacity:1;transform:scale(1.35)}}}
 .money{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .money div{background:var(--paper);border-radius:12px;padding:11px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .money span{font-size:11.5px;color:var(--muted);font-weight:600}
@@ -436,6 +455,8 @@ const TITLES={
  caregiver:{n:'청년 간병인',d:'회사와 병원 사이를 오가는 서른다섯이에요.'},
  collapse:{n:'번아웃 휴직자',d:'쓰러지고 나서야 쉬는 법을 배웠어요.'},
  healing:{n:'마음 회복 중',d:'도움을 요청한 날이 인생의 전환점이었어요.'},
+ totowin:{n:'토토로 인생 역전',d:'불법으로 번 돈은 밤에 잠을 못 자게 해요.'},
+ criminal:{n:'전과 1범',d:'한 번의 선택이 이력서에 평생 남았어요.'},
  lotto:{n:'로또 1등 당첨자',d:'814만 분의 1. 아직도 꿈인가 싶어요.'},
  lottobroke:{n:'로또 1등 탕진러',d:'20억이 3년 만에 사라졌어요. 다시 로또를 사요.'},
  bizowner:{n:'사장님',d:'월급 주는 사람이 됐어요. 월급날이 제일 무서워요.'},
@@ -1120,7 +1141,8 @@ function apply(fx){
 const moment=(t,fx)=>{S.moments.push(t);return {t,fx}};
 
 // ===================== 전환점 =====================
-const FRIENDS=['지우','하준','서윤','도현','예린','시우','민서','유찬','수아','건우'];
+const BOYS=['하준','도현','시우','유찬','건우','민재','태윤','지호','은우','현준'],GIRLS=['서윤','예린','민서','수아','지아','하린','채원','유나','소율','다은'];
+const FRIENDS=[...BOYS,...GIRLS];
 const EVENTS=[
  {id:'newkid',min:8,max:10,title:'전학 온 친구',desc:()=>`전학 온 ${S.bffCand}, 쉬는 시간마다 혼자 있어요.`,opts:[
    {l:'먼저 말을 건다',s:'단짝이 생길 수 있어요',run:()=>{S.bff=S.bffCand;return moment(`${S.bff}와(과) 단짝이 됐어요.`,apply({soc:3,mnt:1,stress:-4}))}},
@@ -1225,8 +1247,9 @@ const EVENTS=[
    {l:'부모님께 말하고 신고한다',s:'',run:()=>moment('학폭위가 열렸고 가해 학생은 출석 정지를 받았어요. 단톡방은 조용해졌어요.',apply({stress:5,mnt:3}))},
    {l:'혼자 참는다',s:'',run:()=>{S.flags.victim=1;return moment('아무 일 없는 척 학교에 갔어요. 화장실에서 혼자 밥을 먹었어요.',apply({stress:20,mnt:-3}))}},
    {l:'똑같이 되갚아 준다',s:'',run:()=>{S.flags.hakpok=1;return moment('속은 시원했어요. 그런데 나도 학폭 가해자로 생활기록부에 남았어요.',apply({stress:-4,soc:-2}))}}]},
- {id:'gamble',shock:1,min:14,max:18,title:'친구의 제안',desc:()=>'친구가 휴대폰으로 하는 불법 스포츠 도박 사이트를 알려줬어요. 5만 원이 50만 원 됐대요.',opts:[
-   {l:'딱 한 번만 해본다',s:'',run:()=>{if(R()<.2){S.flags.gambleWin=1;return moment('50만 원을 땄어요. 손이 떨려요. 다음 주에 다시 했다가 다 잃었어요.',apply({stress:10}))}const pol=R()<.45;if(pol)S.flags.police=1;return moment(pol?'용돈을 전부 날리고 친구에게 빚까지 졌어요. 결국 경찰서에서 부모님을 만났어요.':'용돈을 전부 날리고 친구에게 30만 원을 빌렸어요.',apply({money:-40,stress:pol?24:15}))}},
+ {id:'gamble',shock:1,min:14,max:18,title:'친구의 제안',desc:()=>'친구가 휴대폰으로 하는 불법 스포츠 토토 사이트를 알려줬어요. 5만 원이 50만 원 됐대요.',opts:[
+   {l:'딱 한 번만 해본다',s:'운 판정 · 걸리면 경찰서',run:()=>{const r=R()-S.st.luck/600;if(r<.3){S.flags.gambleWin=1;return moment('50만 원을 땄어요. 그날 바로 앱을 지웠어요. 아무도 몰라요. 아직은요.',apply({money:50,stress:-3,luck:1}))}if(r<.65)return moment('용돈을 전부 날리고 친구에게 30만 원을 빌렸어요.',apply({money:-40,stress:15}));S.flags.police=1;return moment('사이트가 경찰에 털렸어요. 이용자 명단에 내 이름이 있었어요. 부모님과 함께 경찰서에 갔어요.',apply({money:-30,stress:24}))}},
+   {l:'크게 건다',s:'대박이냐 쪽박이냐 · 걸리면 기록이 남아요',run:()=>{const r=R()-S.st.luck/500;if(r<.18){S.flags.gambleWin=1;S.flags.bigWin=1;return moment('축구 3경기 다폴더가 다 맞았어요. 300만 원. 친구들한테 치킨을 쐈어요. 그 뒤로 매일 밤 배당표를 봐요.',apply({money:300,stress:-5,luck:2,mnt:-2}))}if(r<.55){S.flags.gambleDebt=1;return moment('잃은 걸 메우려다 120만 원 빚이 생겼어요. 모르는 번호로 독촉 문자가 와요.',apply({money:-120,stress:26,mnt:-2}))}S.flags.police=1;return moment('사이버수사대에서 연락이 왔어요. 소년보호처분을 받았어요. 이 기록이 나중에 발목을 잡을 수도 있어요.',apply({money:-60,stress:30}))}},
    {l:'거절한다',s:'',run:()=>moment('그 친구는 다음 학기에 학교를 그만뒀어요.',apply({mnt:2}))}]},
  {id:'scam',shock:1,min:13,max:19,title:'중고거래 사기',desc:()=>'중고 게임기를 반값에 판다는 글을 보고 입금했어요. 판매자가 잠수를 탔어요.',opts:[
    {l:'경찰에 신고한다',s:'',run:()=>moment('같은 사람에게 당한 피해자가 47명이었어요. 돈은 아직 못 받았어요.',apply({money:-20,stress:5,mnt:1}))},
@@ -1418,7 +1441,7 @@ function renderIntro(){
 }
 
 // ===================== 만들기 =====================
-function startCreate(){D={step:1,name:'',gender:'남',region:'seoul',type:'model',skin:0};renderCreate()}
+function startCreate(){D={step:1,name:'',gender:'남',region:'seoul',type:'model',skin:Math.floor(R()*SKIN.length)};renderCreate()}
 const stepsBar=n=>`<div class="steps">${[1,2].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div>`;
 function renderCreate(){
   dock(null);
@@ -1430,14 +1453,12 @@ function renderCreate(){
     <div class="card col" style="gap:14px">
       <label class="field"><span class="label">이름</span><input id="nm" maxlength="8" placeholder="이름이나 별명" value="${esc(D.name)}" autocomplete="off"></label>
       <div class="field"><span class="label">성별</span><div class="seg">${['남','여'].map(g=>`<button type="button" data-g="${g}" aria-pressed="${D.gender===g}">${g==='남'?'남자':'여자'}</button>`).join('')}</div></div>
-      <div class="field"><span class="label">피부톤</span><div class="seg skins">${SKIN.map((c,i)=>`<button type="button" data-s="${i}" aria-pressed="${(D.skin||0)===i}" style="--sk:${c}"><i></i>${['밝은','보통','어두운'][i]}</button>`).join('')}</div></div>
       <label class="field"><span class="label">태어난 곳 · 1년 교육비 예산</span><select id="rg">${REGIONS.map(r=>`<option value="${r.id}" ${D.region===r.id?'selected':''}>${r.name} · ${man(r.budget)} · ${r.desc}</option>`).join('')}</select></label>
     </div>`;
     dock(`<button class="btn" id="next">다음</button>`);
     $('back').onclick=renderIntro;
     $('nm').oninput=e=>D.name=e.target.value.trim();
     document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{D.name=$('nm').value.trim();D.gender=b.dataset.g;renderCreate()});
-    document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{D.name=$('nm').value.trim();D.skin=+b.dataset.s;renderCreate()});
     $('rg').onchange=e=>D.region=e.target.value;
     $('next').onclick=()=>{D.name=$('nm').value.trim()||pick(['김민준','이서연','박도윤','최하은','정지호','강서아']);D.step=2;renderCreate()};
   } else {
@@ -1457,8 +1478,7 @@ function beginLife(){
   const ty=TYPES.find(x=>x.id===D.type);const tr=R();
   S={v:5,tid:ty.id,fam:['엄마','아빠','할머니','동생'],sys:[],budgetMul:1,phase:'home',name:D.name,gender:D.gender,region:D.region,type:ty.name,st:{...ty.st},t:0,study:4,stress:20,money:0,skin:SKIN[D.skin||0],num:pick([7,9,10,11,23]),
     trait:tr<.25?'조숙형':tr<.75?'보통':'대기만성형',tags:{},used:[],lastEv:null,hist:[],awards:[],awardsAll:[],moments:[],yfx:{},banjang:0,flags:{},
-    bffCand:pick(FRIENDS),crushCand:pick(FRIENDS),bff:null,dating:null,school:`${pick(['한빛','새솔','푸른','늘봄','은행나무','별빛','가람','미르'])}초등학교`};
-  while(S.crushCand===S.bffCand)S.crushCand=pick(FRIENDS);
+    bffCand:pick(D.gender==='여'?GIRLS:BOYS),crushCand:pick(D.gender==='여'?BOYS:GIRLS),bff:null,dating:null,school:`${pick(['한빛','새솔','푸른','늘봄','은행나무','별빛','가람','미르'])}초등학교`};
   prepTurn();save();
   openSheet(`<span class="label">가족 단톡방</span>
     ${chatHTML(famRoom(),[['엄마',`오늘 ${S.name} 입학식! 사진 올린다`],['아빠','벌써 초등학생이라니'],['할머니','우리 강아지 축하한다'],['동생','나도 학교 가고 싶다']])}
@@ -1606,8 +1626,10 @@ function calcSuneung(){
   return {cond:c[0],subj,avg:+avg.toFixed(2),naesin:+naesin.toFixed(1),eff:+eff.toFixed(2),ti:TIERS.findIndex(t=>eff<=t[0]),note};
 }
 function academicPath(ti){
-  const c=[['med',ti===0&&tag('care')>=2],['kaist',ti<=1&&tag('sci')>=3],['law',ti<=1&&tag('debate')>=3],['police',ti<=2&&S.st.phy>=70&&S.st.mnt>=70&&tag('care')+tag('debate')>=2],
-    ['army',ti<=3&&S.st.phy>=72&&S.st.mnt>=72],['snu',ti===0],['yk',ti===1],['nurse',ti<=5&&tag('care')>=3],['cs',ti<=4&&tag('code')>=3],
+  const rec=S.flags.police||S.flags.hakpok;
+  if(rec&&((ti<=2&&S.st.phy>=70&&S.st.mnt>=70&&tag('care')+tag('debate')>=2)||(ti<=3&&S.st.phy>=72&&S.st.mnt>=72)))S.blockNote=S.flags.police?'경찰 처분 기록 때문에 경찰대 · 사관학교에 지원하지 못했어요.':'학폭 조치 기록 때문에 경찰대 · 사관학교 서류에서 떨어졌어요.';
+  const c=[['med',ti===0&&tag('care')>=2],['kaist',ti<=1&&tag('sci')>=3],['law',ti<=1&&tag('debate')>=3],['police',!rec&&ti<=2&&S.st.phy>=70&&S.st.mnt>=70&&tag('care')+tag('debate')>=2],
+    ['army',!rec&&ti<=3&&S.st.phy>=72&&S.st.mnt>=72],['snu',ti===0],['yk',ti===1],['nurse',ti<=5&&tag('care')>=3],['cs',ti<=4&&tag('code')>=3],
     ['crew',ti<=6&&S.st.charm>=72&&S.st.soc>=65],['mid',ti<=3],['inseoul',ti<=5],['local',ti<=7],['retake',true]];
   return c.find(x=>x[1])[0];
 }
@@ -1644,6 +1666,7 @@ function finale(){
 function showPath19(id,detail){
   if(S.stress>=95)id='burnout';
   const p=PATHS[id];addTo(DKEY,id);
+  if(S.blockNote){detail+=' · '+S.blockNote;S.blockNote=null}
   S.path19=id;S.detail19=detail;
   // 어른 편 시작 상태
   const happy=clamp(60-(S.stress-40)*.6+(S.bff?8:0)+(S.dating?6:0),15,90);
@@ -1825,16 +1848,20 @@ const TRADE_LIC=[['미용사',()=>.8],['조리기능사',()=>.85],['제과제빵
  ['대형면허',()=>.9],['간호조무사',()=>.8],['요양보호사',()=>.95],['반려동물미용',()=>.85],['필라테스',()=>clamp(.4+sv('phy')/250,.4,.9)],['생활스포츠지도사',()=>clamp(.3+sv('phy')/200,.3,.9)]];
 const EXAMS=[['9급 공무원',()=>clamp(.06+sv('int')/500+sv('mnt')/500,.05,.45),'9급합격'],['7급 공무원',()=>clamp(.02+sv('int')/600,.02,.2),'7급합격'],
  ['소방 공무원',()=>sv('phy')>=60?clamp(.1+sv('phy')/300,.1,.5):.03,'소방합격'],['경찰 공무원',()=>sv('phy')>=55?clamp(.1+sv('phy')/400+sv('int')/500,.1,.45):.03,'경찰합격']];
-function licRun(name,p,lic,yrs='2년'){return ()=>{const ok=R()<p();if(ok&&!S.ad.lic.includes(lic))S.ad.lic.push(lic);S.ad.happy-=ok?2:8;return {t:ok?`${name} 합격! ${lic} 자격이 생겼어요.`:`${name}에 ${yrs}을 쏟았지만 떨어졌어요.`,fx:ok?`자격 획득 · ${lic}`:'불합격'}}}
+const recNote=()=>S.flags.police||S.ad.flags.crime?'police':S.flags.hakpok?'hakpok':null;
+const recFail=k=>({police:'필기는 붙었는데 신원조회에서 과거 경찰 기록이 나왔어요. 최종 불합격이에요.',hakpok:'면접관이 생활기록부의 학폭 조치 기록을 물어봤어요. 최종 불합격이에요.'})[k];
+function licRun(name,p,lic,yrs='2년',recHit=false){return ()=>{const ok=R()<p();if(ok&&!S.ad.lic.includes(lic))S.ad.lic.push(lic);S.ad.happy-=ok?2:8;const why=!ok&&recHit&&recNote()&&R()<.7?recFail(recNote()):null;return {t:ok?`${name} 합격! ${lic} 자격이 생겼어요.`:why||`${name}에 ${yrs}을 쏟았지만 떨어졌어요.`,fx:ok?`자격 획득 · ${lic}`:why?'과거가 발목을 잡았어요':'불합격'}}}
+const recP=(n,p)=>{const k=recNote();if(!k)return p;if(n==='경찰 공무원')return 0;if(/임용|교직/.test(n))return k==='hakpok'?p*.35:p*.6;if(/공무원|외교관|경찰 간부|임관/.test(n))return p*.5;return p};
+const recS=n=>{const k=recNote();if(!k)return '';if(n==='경찰 공무원')return k==='police'?'과거 경찰 기록 · 응시 결격':'학폭 이력 · 응시 결격';if(/임용|교직|공무원|외교관/.test(n))return '과거 기록 때문에 면접에서 불리해요';return ''};
 function chapters(){
   const A=S.ad,st=S.st,male=S.gender==='남';
   const majOpts=A.major&&LIC_BY_MAJOR[A.major]?LIC_BY_MAJOR[A.major]:null;
   const twenty=[
-    majOpts?{l:`${A.major} 전공 살리기`,s:majOpts.map(m=>m[0]).join(' · '),run:()=>({subDef:{title:`${A.major} 전공으로 준비할 것`,desc:'합격 확률은 능력치와 출신 학교 수준에 따라 달라요.',opts:majOpts.map(([n,p,l])=>({l:n,s:`성공 시 ${l}`,p:p(),run:licRun(n,p,l)}))}})}
+    majOpts?{l:`${A.major} 전공 살리기`,s:majOpts.map(m=>m[0]).join(' · '),run:()=>({subDef:{title:`${A.major} 전공으로 준비할 것`,desc:'합격 확률은 능력치와 출신 학교 수준에 따라 달라요.',opts:majOpts.map(([n,p,l])=>{const pp=()=>recP(n,p());return {l:n,s:recS(n)||`성공 시 ${l}`,p:pp(),run:licRun(n,pp,l,'2년',true)}})}})}
       :A.track==='star'||A.track==='work'?{l:'하던 일에 올인',s:'경력과 실력을 키워요',run:()=>{A.q+=.12;A.happy-=3;return {t:'20대 초반을 일에 갈아 넣었어요. 실력이 확실히 늘었어요.',fx:'커리어↑'}}}:null,
     ...(!A.major&&A.track==='lost'?[{l:'한 번 더 도전 · 대학 가기',s:'재수 · 편입',p:clamp(.35+st.int/250+st.mnt/500,.3,.8),run:()=>{const p=clamp(.35+st.int/250+st.mnt/500,.3,.8);if(R()<p){A.major=majorOf(st.int>=70?'inseoul':'local');A.q=Math.max(A.q,.5);A.track='univ';return {t:`재도전 끝에 ${A.major}과에 들어갔어요. 동기들보다 두 살 많아요.`,fx:`전공 · ${A.major}`}}A.happy-=10;return {t:'또 떨어졌어요. 이번엔 엄마도 아무 말을 안 했어요.',fx:'불합격'}}}]:[]),
     {l:'기술 자격증 따기',s:'미용 · 조리 · 제과 · 공인중개사 · 전기 · 대형면허 등',run:()=>({subDef:{title:'어떤 자격증을 딸까요?',desc:'학원비는 들지만 평생 써먹을 수 있어요.',opts:shuffle(TRADE_LIC).slice(0,6).map(([n,p])=>({l:n,s:'',p:p(),run:()=>{A.asset-=300;return licRun(`${n} 시험`,p,n,'1년')()}}))}})},
-    {l:'공무원 시험 준비',s:'9급 · 7급 · 소방 · 경찰',run:()=>({subDef:{title:'어떤 시험을 볼까요?',desc:'노량진 고시원 생활이 시작돼요. 붙으면 평생 직장이에요.',opts:EXAMS.map(([n,p,l])=>({l:n,s:'',p:p(),run:()=>{A.flags.exam=1;return licRun(n,p,l,'3년')()}}))}})},
+    {l:'공무원 시험 준비',s:'9급 · 7급 · 소방 · 경찰',run:()=>({subDef:{title:'어떤 시험을 볼까요?',desc:'노량진 고시원 생활이 시작돼요. 붙으면 평생 직장이에요.',opts:EXAMS.map(([n,p,l])=>{const pp=()=>recP(n,p());return {l:n,s:recS(n),p:pp(),dis:pp()<=0,run:()=>{A.flags.exam=1;return licRun(n,pp,l,'3년',true)()}}})}})},
     {l:'청춘 낭만',s:'동아리 · 페스티벌 · 연애',run:()=>{A.happy+=10;if(!A.partner&&chance((st.charm+st.soc)/170))A.partner='dating';return {t:A.partner?'페스티벌에서 만난 사람과 사귀게 됐어요.':'잊지 못할 여름을 보냈어요.',fx:'행복↑'}}},
     {l:'워킹홀리데이 1년',s:'호주에서 일하고 영어 배우기',run:()=>{A.asset+=900;A.happy+=6;A.lic.push('외국어');A.flags.wh=1;return {t:'1년 동안 900만 원을 모으고 영어가 늘었어요.',fx:'자산 +900만 · 외국어'}}},
     {l:'일단 좀 쉰다',s:'이불 밖은 위험해',run:()=>{A.q-=.05;A.happy+=3;A.flags.rest1=1;return {t:'2년을 푹 쉬었어요. 넷플릭스 시청 기록이 1,400시간이에요.',fx:'커리어↓'}}}].filter(Boolean);
@@ -1859,6 +1886,12 @@ function chapters(){
      {l:'매주 로또 5장',s:'4년 동안 매주. 언젠가는…',run:()=>{const save=A.sal*.3*4;A.asset+=save-100;const r=R();if(r<.007+st.luck/20000){A.asset+=200000;A.flags.lotto1=1;A.happy+=20;return {t:'토요일 밤 8시 45분. 번호 6개가 다 맞았어요. 로또 1등, 세금 떼고 20억이에요.',fx:'자산 +20억'}}if(r<.03){A.asset+=6000;return {t:'로또 2등! 6천만 원이 생겼어요.',fx:'자산 +6천만'}}if(r<.3)return {t:'5등만 열두 번. 로또값 100만 원 중에 40만 원을 돌려받았어요.',fx:'로또값 -60만'};return {t:'4년 동안 로또값 100만 원. 남은 건 종이 208장이에요.',fx:'로또값 -100만'}}},
      {l:'청약 넣기',s:'당첨되면 인생 역전',run:()=>{if(chance(.12+st.luck/300)){A.house='청약 당첨 아파트';A.flags.cheongyak=1;A.asset+=A.sal*.3*4+65000;A.debt+=35000;return {t:'경쟁률 312 대 1을 뚫고 당첨됐어요!',fx:'집 생김 · 순자산 +3억'}}A.asset+=A.sal*.3*4;return {t:'5번 넣어서 5번 떨어졌어요. 그래도 저축은 했어요.',fx:'자산 증가'}}},
      {l:'영끌해서 아파트',s:'지금 아니면 평생 못 산다',run:()=>{A.house='영끌 아파트';A.debt+=45000;const m=clamp(1.1+randn()*.3,.7,1.8);A.asset=A.asset-15000+A.sal*.15*4+60000*m;A.flags.youngkkeul=1;A.happy-=8;return {t:m>=1.2?'집값이 올랐어요. 이자는 무섭지만 웃음이 나요.':m>=.95?'집값은 그대로, 대출 이자도 그대로예요.':'집값이 떨어졌어요. 월급의 절반이 이자로 나가요.',fx:`집값 ${m>=1?'+':''}${Math.round((m-1)*100)}%`}}},
+     {l:'불법 해외 토토로 한 방',s:S.flags.gambleWin?'고등학생 때 그 맛을 잊지 못했어요':'대박 · 쪽박 · 전과 중 하나',run:()=>{const save=A.sal*.3*4;A.asset+=save;A.flags.toto=1;const r=R()-st.luck/500-(S.flags.gambleWin?.04:0);
+       if(r<.12){A.asset+=18000;A.flags.totoWin=1;A.happy+=6;return {t:'4년 동안 몰래 한 토토로 1억 8천을 땄어요. 세금은 한 푼도 안 냈어요. 밤마다 초인종 소리에 깨요.',fx:'자산 +1억 8천만'}}
+       if(r<.55){const l=Math.round(A.asset*.7);A.asset-=l;A.happy-=12;return {t:`4년 치 저축 ${man(l)}을 다 날렸어요. 손실을 메우려고 카드론까지 받았어요.`,fx:`자산 -${man(l)}`}}
+       A.flags.crime=1;A.asset-=2000;A.happy-=16;const cat=A.jobId&&JOBMAP[A.jobId]?JOBMAP[A.jobId][2]:'';const strict=['공공','의료','교육','법 · 금융'].includes(cat);
+       if(strict&&A.sal>0){A.flags.fired=1;const old=A.job;A.job=`전직 ${old}`;A.jobId='smallco';A.sal=Math.round(A.sal*.45);A.outfit='office';return {t:`도박 사이트 수사에서 내 계좌가 나왔어요. 벌금 2천만 원에 전과가 생겼고, ${old} 자리에서 징계 해고됐어요.`,fx:'벌금 · 전과 · 해고'}}
+       return {t:'도박 사이트 수사에서 내 계좌가 나왔어요. 벌금 2천만 원, 전과 1범이 됐어요. 회사에는 아직 들키지 않았어요.',fx:'벌금 2천만 · 전과'}}},
      {l:'유행 디저트 가게 창업',s:'다음 유행만 맞히면 대박',run:()=>{const p=(st.sens*.5+st.luck*.3+st.soc*.2)/110+(S.flags.dzkSell?.15:0);if(chance(p)){A.asset+=25000;A.flags.dzk=1;A.job='디저트 가게 사장';A.jobId='owner';A.sal=Math.max(A.sal,9000);A.outfit='chef';return {t:'오픈런 줄이 골목을 돌았어요. 2호점을 냈어요.',fx:'자산 +2억 5천만'}}A.asset=Math.max(0,A.asset-3000);A.happy-=6;return {t:'유행이 6개월 만에 끝났어요. 폐업 신고를 했어요.',fx:'자산 -3천만'}}}]},
    {key:'ai',ages:'33–35세',title:'AI가 일터에 들어왔어요',desc:A.job?`${A.job} · AI 대체 위험 ${jj?(jj[6]>=.6?'높음':jj[6]>=.3?'보통':'낮음'):'보통'}. 요즘 다들 불안해해요.`:'요즘은 어딜 가도 AI 얘기뿐이에요.',opts:[
      {l:'AI 리스킬링',s:'AI를 부리는 사람이 된다',run:()=>{if(chance((st.int*.6+st.mnt*.4)/100+A.q*.2)){A.sal=Math.round(A.sal*1.35+800);A.flags.airesk=1;return {t:'AI 전환 프로젝트 리더가 됐어요.',fx:'연봉 35%↑'}}A.sal=Math.round(A.sal*1.05);return {t:'자격증은 땄는데 현업 적용은 아직이에요.',fx:'연봉 소폭↑'}}},
@@ -2040,6 +2073,8 @@ function finalTitle(A){
   if(f.divorced)all.push('divorcee');
   if(f.lottoBroke)all.push('lottobroke');else if(f.lotto1)all.push('lotto');
   if(f.exit)all.push('exit');
+  if(f.fired||(f.crime&&!f.totoWin))all.push('criminal');
+  if(f.totoWin)all.push('totowin');
   if(f.hakpokOut)all.push('hakpokout');
   if(f.fire)all.push('fire');
   if(A.jobId==='national')all.push('national');
@@ -2072,6 +2107,19 @@ function finalTitle(A){
   if(!all.length)all.push('average');
   return all;
 }
+// 대한민국 실제 분포 (상위 %, 만원). 연봉: 국세청 2023년 귀속 만근 근로자 근로소득 천분위(2025.11 공개). 상위 0.1% 경계와 하위 1%는 추정.
+// 순자산: 2025 가계금융복지조사(2025.3 기준) 가구 순자산. 10억↑ 11.8% · 3억↓ 57% · 상위 1% 하한 약 33억은 공개치, 나머지 구간은 추정.
+const KR_SAL=[[.1,70000],[1,21673],[10,10057],[20,7624],[50,4272],[80,2642],[90,2119],[99,700]];
+const KR_NET=[[.1,1000000],[1,330000],[11.8,100000],[43,30000],[50,24000],[75,8000],[85,3000],[90,500]];
+function krTop(v,T){if(v>=T[0][1])return T[0][0];const last=T[T.length-1];if(v<=last[1])return 100;for(let i=0;i<T.length-1;i++){const [p1,v1]=T[i],[p2,v2]=T[i+1];if(v<=v1&&v>=v2){const t=(Math.log(v1)-Math.log(v))/(Math.log(v1)-Math.log(v2));return p1+(p2-p1)*t}}return 100}
+const fmtTop=t=>t>=100?'하위 10%':t<1?`상위 ${t.toFixed(1)}%`:`상위 ${Math.round(t)}%`;
+function salTier(t,v){if(!v)return ['통계상 쉬었음','근로소득 0원. 국세청 통계에도 안 잡혀요.'];if(t<=1)return ['대한민국 1% 연봉','근로자 100명 중 맨 앞자리. 명절에 친척들이 연봉을 안 물어봐요.'];if(t<=10)return ['억대 연봉 클럽','근로자 10명 중 1명만 들어오는 곳이에요.'];if(t<=20)return ['상위 20% 고소득','회사 단톡방에서 "그 사람"으로 불려요.'];if(t<=50)return ['중위 연봉 이상','딱 절반보다는 앞. 체감은 하위권이에요.'];if(t<=80)return ['중위 연봉 미만','월급날만 부자, 25일부터 거지예요.'];return ['최저 생활선','통장이 스쳐 지나가는 정거장이에요.']}
+function netTier(t,v){if(v<=0)return ['마이너스 인생','갚을 돈이 가진 돈보다 많아요.'];if(t<=1)return ['대한민국 1% 부자','PB 센터에서 먼저 연락이 와요.'];if(t<=11.8)return ['순자산 10억 클럽','대한민국 가구 10곳 중 1곳만 여기 있어요.'];if(t<=43)return ['자산 상위권','집 걱정은 조금 덜해요.'];if(t<=75)return ['평범한 자산','전세 대출 이자가 월세보다 무서워요.'];return ['자산 하위권','부모님 집 주소가 아직 내 주소예요.']}
+function rankDots(t,cls){const n=Math.max(1,Math.min(100,Math.ceil(t>=100?95:t)));return `<div class="dots ${cls}" aria-hidden="true">${Array.from({length:100},(_,i)=>`<i class="${i+1<n?'a':i+1===n?'me':'b'}" style="--d:${i*8}ms"></i>`).join('')}</div>`}
+function rankCard(kind,v,t){const [tier,line]=kind==='sal'?salTier(t,v):netTier(t,v);const ppl=Math.max(1,Math.ceil(t>=100?95:t));
+  return `<div class="rank ${kind}"><div class="rk-top"><span class="label">${kind==='sal'?'연봉 · 대한민국 근로자':'순자산 · 대한민국 가구'}</span><b class="rk-tier">${tier}</b></div>
+   <div class="rk-big"><b class="num" data-count="${v>0?t:100}">${v>0?fmtTop(t):kind==='sal'?'측정 불가':'하위 10%'}</b><span>${kind==='sal'?(v?man(v):'0원'):man(v)}</span></div>
+   ${rankDots(t,kind)}<p class="rk-line">${kind==='sal'&&v?`근로자 100명을 줄 세우면 <strong>앞에서 ${ppl}번째</strong>. `:kind==='net'&&v>0?`가구 100곳을 줄 세우면 <strong>앞에서 ${ppl}번째</strong>. `:''}${esc(line)}</p></div>`}
 function pctTop(v,mid,spread){return clamp(Math.round(100*(1-1/(1+Math.exp(-(Math.log(Math.max(v,1))-Math.log(mid))/spread)))),1,99)}
 function realityCheck(A,net){
   const mon=Math.round(A.sal*.82/12),L=[];
@@ -2087,6 +2135,9 @@ function realityCheck(A,net){
   if(S.flags.divorce)L.push('명절엔 엄마 집과 아빠 집을 하루씩 나눠서 가요.');
   if(S.flags.grandma)L.push('할머니 기일마다 그 용돈 봉투를 꺼내 봐요.');
   if(S.flags.hakpok)L.push('동창회 단톡방에서 아직도 그 일 얘기가 나와요.');
+  if(S.flags.police)L.push('열여섯 살 토토 기록은 생활기록부엔 없지만 경찰 전산엔 남아 있어요.');
+  if(A.flags.crime)L.push('이력서 상벌 칸을 쓸 때마다 손이 멈춰요. 벌금형 전과 1범이에요.');
+  if(A.flags.totoWin)L.push('토토로 번 1억 8천. 국세청 알림 문자가 올 때마다 심장이 내려앉아요.');
   return L;
 }
 function finalArt(t){
@@ -2094,7 +2145,7 @@ function finalArt(t){
     cheongyak:['home',()=>PROP.house(250,186),0],doctor:['hospital',()=>'',0],rested:['bedroom',()=>'',2],coinloss:['city',()=>PROP.chartdown(250,186),5],youngkkeul:['home',()=>PROP.house(250,186)+PROP.redtag(50,40,-8),2],
     aireplaced:['office',()=>PROP.robot(250,186)+PROP.box(70,186),5],airesk:['office',()=>PROP.robot(250,186),0],njob:['bedroom',()=>PROP.laptop(70,186)+PROP.camera(250,186),1],quietquit:['subway',()=>'',1],kangaroo:['home',()=>PROP.pot(250,186),1],
     slowage:['track',()=>'',0],jangthink:['yard',()=>PROP.sparkle(260,40),0],godsaeng:['night',()=>PROP.books(250,186),1],dink:['wedding',()=>PROP.ring(262,100),0],parent:['home',()=>PROP.heart(250,70,1.4),2],solo:['home',()=>PROP.cat(250,186),0],
-    average:['office',()=>'',1],collapse:['hospital',()=>PROP.hospitalbed(80,186),3],healing:['yard',()=>PROP.heart(250,70,1.4),0],scamvictim:['home',()=>PROP.contractX(250,186),5],divorcee:['home',()=>PROP.frame(70,186),2],lotto:['city',()=>PROP.money(70,186)+PROP.sparkle(260,40,1.5),0],lottobroke:['city',()=>PROP.chartdown(250,186)+PROP.redtag(50,40,-8),5],bizowner:['cafe',()=>PROP.coins(110,100),0],bizfail:['street',()=>PROP.redtag(236,60,8)+PROP.box(70,186),5],exit:['office',()=>PROP.chartup(250,186)+PROP.sparkle(60,50),0],national:['track',()=>PROP.trophy(250,186)+PROP.sparkle(60,50,1.4),0],hero:['street',()=>PROP.ambulance(250,186),0],boomerang:['street',()=>PROP.sparkle(60,50)+PROP.speech(236,52,'기억나?'),1],hakpokout:['wedding',()=>PROP.contractX(250,186),5],licking:['night',()=>PROP.books(250,186)+PROP.paper(70,186,'합격'),1],caregiver:['hospital',()=>PROP.hospitalbed(80,186),2]};
+    average:['office',()=>'',1],collapse:['hospital',()=>PROP.hospitalbed(80,186),3],healing:['yard',()=>PROP.heart(250,70,1.4),0],scamvictim:['home',()=>PROP.contractX(250,186),5],divorcee:['home',()=>PROP.frame(70,186),2],totowin:['night',()=>PROP.money(250,186)+PROP.phone(70,186,'배당'),2],criminal:['hall',()=>PROP.paper(250,186,'벌금')+PROP.redtag(60,50,-6),5],lotto:['city',()=>PROP.money(70,186)+PROP.sparkle(260,40,1.5),0],lottobroke:['city',()=>PROP.chartdown(250,186)+PROP.redtag(50,40,-8),5],bizowner:['cafe',()=>PROP.coins(110,100),0],bizfail:['street',()=>PROP.redtag(236,60,8)+PROP.box(70,186),5],exit:['office',()=>PROP.chartup(250,186)+PROP.sparkle(60,50),0],national:['track',()=>PROP.trophy(250,186)+PROP.sparkle(60,50,1.4),0],hero:['street',()=>PROP.ambulance(250,186),0],boomerang:['street',()=>PROP.sparkle(60,50)+PROP.speech(236,52,'기억나?'),1],hakpokout:['wedding',()=>PROP.contractX(250,186),5],licking:['night',()=>PROP.books(250,186)+PROP.paper(70,186,'합격'),1],caregiver:['hospital',()=>PROP.hospitalbed(80,186),2]};
   const a=M[t]||M.average;return artSVG(a[0],a[1](),curAvatar({mood:a[2]}),'c');
 }
 function showFinal(){
@@ -2103,13 +2154,13 @@ function showFinal(){
   if(!A.house)A.house=net>=60000?'자가 아파트':net>=20000?'전세':net>=5000?'월세':'부모님 집';
   const titles=finalTitle(A),main=titles[0];
   titles.forEach(t=>addTo(TKEY,t));
-  const salTop=A.sal?pctTop(A.sal,4300,.45):100,assetTop=net>0?pctTop(net,15000,.9):100;
+  const salTopN=A.sal?krTop(A.sal,KR_SAL):100,netTopN=net>0?krTop(net,KR_NET):100,salTop=fmtTop(salTopN),assetTop=fmtTop(netTopN);
   const score=Math.round(A.sal/10+Math.max(net,0)/50+A.happy*8+A.health*4);
   addRecord({name:S.name,title:TITLES[main].n,asset:net,score});
   ls.del(KEY);
   const cut=(stage,mood,outfit,bg,cap)=>`<div><div class="ph">${avatarSVG({g:S.gender,stage,mood,outfit,look:lookNow(),skin:S.skin,num:S.num,bg})}</div><span>${cap}</span></div>`;
   const h=S.hist;
-  const text=`[한국에서 살아남기] ${S.name} · ${S.type} · ${REG().name}\n19세: ${PATHS[S.path19].n}${A.major?` (${A.major})`:''}\n35세: ${A.job||'무직'} · ${TITLES[main].n}\n직업 ${A.job||'없음'} · ${A.sal?`연봉 ${man(A.sal)} (상위 ${salTop}%)`:'수입 없음'}\n순자산 ${man(net)} · ${A.house} · ${A.partner==='married'?'기혼':A.partner?'연애 중':'솔로'}\n행복도 ${Math.round(A.happy)} · 건강 ${Math.round(A.health)}`;
+  const text=`[한국에서 살아남기] ${S.name} · ${S.type} · ${REG().name}\n19세: ${PATHS[S.path19].n}${A.major?` (${A.major})`:''}\n35세: ${A.job||'무직'} · ${TITLES[main].n}\n연봉 ${A.sal?`${man(A.sal)} · 대한민국 ${salTop}`:'0원'}\n순자산 ${man(net)} · 대한민국 ${net>0?assetTop:'하위권'} · ${A.house} · ${A.partner==='married'?'기혼':A.partner?'연애 중':'솔로'}\n행복도 ${Math.round(A.happy)} · 건강 ${Math.round(A.health)}`;
   dock(null);
   $('app').innerHTML=`<div class="top"><div class="brand">한국에서 살아남기</div><span class="tiny">35세 성적표</span></div>
   <section class="card col" style="gap:12px">
@@ -2125,9 +2176,9 @@ function showFinal(){
     <div class="bigtitle">${TITLES[main].n}</div>
     <p style="margin:0">${esc(TITLES[main].d)}</p>
     <div class="report"><span class="seal">직업</span><div class="label">35세 직업 · 직업 도감 ${ls.get(JKEY,[]).length} / ${JOB_ORDER.length}</div><div class="bigtitle" style="font-size:26px">${esc(A.job||'무직')}</div><p class="tiny" style="margin:6px 0 0">${esc(PATHS[S.path19].n)}${A.major?` · ${A.major} 전공`:''} → ${esc(A.job||'무직')}${A.jobId&&JOBMAP[A.jobId]?` · ${JOBMAP[A.jobId][2]}`:''}</p></div>
+    <div class="ranks"><div class="label">대한민국에서 내 위치</div>${rankCard('sal',A.sal,salTopN)}${rankCard('net',net,netTopN)}
+      <p class="tiny" style="margin:0">${A.sal?`중위 연봉(4,272만 원)의 <strong>${(A.sal/4272).toFixed(1)}배</strong>`:'중위 연봉(4,272만 원)까지 4,272만 원'} · ${net>=131000?'39세 이하 가구 상위 1%(13.1억) <strong>돌파</strong>':`39세 이하 상위 1%(13.1억)까지 ${man(131000-Math.max(net,0))}`}</p></div>
     <div class="money">
-      <div><span>연봉</span><b class="num">${A.sal?man(A.sal):'0원'}</b><small>${A.sal?`게임 속 동갑 중 상위 ${salTop}%`:'통계상 쉬었음'}</small></div>
-      <div><span>순자산</span><b class="num">${man(net)}</b><small>${net>0?`상위 ${assetTop}%`:'마이너스 인생'}</small></div>
       <div><span>집</span><b style="font-size:20px">${esc(A.house)}</b><small>${A.debt?`대출 ${man(A.debt)}`:'대출 없음'}</small></div>
       <div><span>가족</span><b style="font-size:20px">${A.partner==='married'?'기혼':A.partner?'연애 중':'솔로'}</b><small>${A.flags.kid?'아이 1명':A.flags.dink?'딩크':A.flags.solo?'고양이 1마리':'–'}</small></div>
       <div><span>행복도</span><b class="num">${Math.round(A.happy)}</b><small>${A.happy>=80?'인생 만족':A.happy>=55?'그럭저럭':A.happy>=30?'버티는 중':'위험 신호'}</small></div>
@@ -2145,12 +2196,14 @@ function showFinal(){
   </section>
   <button class="btn" id="again">다시 태어나기</button>
   <button class="btn ghost" id="home">도감 보기</button>
-  <p class="foot">연봉 · 자산 순위는 게임 속 가상 분포 기준이에요</p>`;
+  <p class="foot">연봉 순위: 국세청 2023년 귀속 만근 근로자 근로소득 · 자산 순위: 2025 가계금융복지조사 가구 순자산 기준. 일부 구간은 공개치 사이를 추정했어요.</p>`;
+  countUp();
   $('cp').onclick=()=>{const ta=$('ct');const fb=()=>{ta.select();$('cpm').textContent='선택된 글을 길게 눌러 복사해 주세요'};
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>$('cpm').textContent='복사했어요').catch(fb);else fb()};
   $('again').onclick=startCreate;$('home').onclick=renderIntro;
 }
 
+function countUp(){const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;document.querySelectorAll('[data-count]').forEach(el=>{const t=+el.dataset.count;if(reduce||t>=100)return;const fin=el.textContent;const st=performance.now(),dur=1100;const f=now=>{const k=Math.min(1,(now-st)/dur),e=1-Math.pow(1-k,3);const cur=100-(100-t)*e;el.textContent=fmtTop(cur);if(k<1)requestAnimationFrame(f);else el.textContent=fin};requestAnimationFrame(f)})}
 // ===================== 부팅 =====================
 $('sheet').addEventListener('click',e=>{if(e.target.id==='sheet'&&!$('sheetCard').querySelector('#ok,#go'))closeSheet()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sheet').hidden&&!$('sheetCard').querySelector('#ok,#go'))closeSheet()});
