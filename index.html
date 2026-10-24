@@ -72,6 +72,7 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .scene{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:16/10;max-width:100%;background:var(--soft)}
 .scene svg{display:block;width:100%;height:100%}
 .skins button{display:flex;align-items:center;justify-content:center;gap:6px}.skins i{width:14px;height:14px;border-radius:50%;background:var(--sk);border:1px solid rgba(0,0,0,.2)}
+.regions{display:flex;flex-direction:column;gap:8px}.region{display:flex;flex-direction:column;gap:4px;text-align:left;border:1.5px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 13px;width:100%}.region[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--card));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}.region strong{font-size:16px}.region .pro{font-size:13.5px;color:var(--good);line-height:1.5}.region .con{font-size:13.5px;color:var(--stamp);line-height:1.5}
 .scene::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1),inset 0 -30px 40px -30px rgba(0,0,0,.35);pointer-events:none}
 @media (prefers-reduced-motion:no-preference){
   .scene svg,.ph svg{animation:scene-in .45s ease-out}
@@ -337,12 +338,19 @@ body{font-size:16px;line-height:1.6;word-break:keep-all}
 const STATS=[['int','지능'],['phy','체력'],['sens','감성'],['charm','매력'],['mnt','멘탈'],['soc','인맥'],['luck','운']];
 const SN=Object.fromEntries(STATS),SK=STATS.map(x=>x[0]);
 const TAGN={sci:'과학',debate:'토론',code:'코딩',sport:'운동부',art:'미술',music:'음악',stage:'무대',cook:'요리',game:'게임',creator:'영상',care:'봉사',farm:'농사',work:'알바'};
+// 태어난 곳: 학창 시절 + 어른 편 장단점
+// stressT/socT/phyT/charmT: 시기마다 변화 · sun: 정시 보정 · susi: 수시 보정 · rent: 어른 편 챕터당 주거비(만원) · ahappy/ahealth: 챕터당 · parent: 부모 지원 확률
 const REGIONS=[
- {id:'gangnam',name:'서울 강남',budget:420,hak:1.2,peer:4,desc:'교육비 넉넉, 경쟁 최강'},
- {id:'seoul',name:'서울 강북',budget:260,hak:1.05,peer:1,desc:'적당한 학원가'},
- {id:'newtown',name:'경기 신도시',budget:260,hak:1.05,peer:1,desc:'아파트 단지 친구가 많음'},
- {id:'metro',name:'지방 광역시',budget:210,hak:1,peer:0,desc:'내신 따기 무난'},
- {id:'rural',name:'농어촌',budget:140,hak:.9,peer:-4,rural:true,desc:'교육비 빠듯, 농어촌 전형'}];
+ {id:'gangnam',name:'서울 강남',budget:420,hak:1.2,peer:4,stressT:1,sun:-.2,sunZ:.3,elite:.1,rent:0,ahappy:0,parent:.45,parentAmt:20000,net:.06,
+   pros:['교육비 420만 · 학원 효율 최고','정시 유리 · 특목고 합격 +10%p','부모님 지원 확률 높음 · 대기업 · 금융권 인맥'],cons:['내신 경쟁 최강','시기마다 스트레스 +1 · 학원 압박','어른이 돼도 "엄친아" 비교 지옥']},
+ {id:'seoul',name:'서울 강북',budget:270,hak:1.05,peer:1,charmT:1,sunZ:.05,rent:0,ahappy:-1,parent:.15,parentAmt:5000,
+   pros:['교육비 270만 · 무난한 학원가','홍대 · 성수 감성으로 매력 +1씩','서울 취업해도 부모님 집에서 출퇴근'],cons:['특별한 무기가 없어요','독립이 늦어져요']},
+ {id:'newtown',name:'경기 신도시',budget:280,hak:1.05,peer:1,socT:1,stressT:1,rent:0,ahealth:-3,parent:.25,parentAmt:8000,
+   pros:['교육비 280만 · 학원 셔틀 천국','아파트 단지 친구로 인맥 +1씩','부모님 아파트값이 올라 지원 기대'],cons:['학원 셔틀 피로로 스트레스 +1씩','어른 편 왕복 3시간 출퇴근으로 건강↓']},
+ {id:'metro',name:'지방 광역시',budget:220,hak:1,peer:-1,susi:-.3,local:.15,rent:1200,ahappy:1,parent:.1,parentAmt:4000,
+   pros:['내신 따기 수월 · 지역인재 전형으로 수시 유리','지역 공기업 · 공무원 · 교사 합격 +15%p','생활비가 싸서 마음이 편해요'],cons:['교육비 220만','서울 취업하면 월세 부담']},
+ {id:'rural',name:'농어촌',budget:140,hak:.9,peer:-4,rural:true,phyT:2,stressT:-1,sunZ:-.2,susi:-.25,local:.15,farm:.2,rent:1200,parent:.05,parentAmt:2000,
+   pros:['내신 1등 쉬움 · 농어촌 특별전형','자연에서 체력 +2, 스트레스 -1씩','귀농 · 스마트팜 +20%p · 할머니 땅 개발 가능성'],cons:['교육비 140만으로 학원을 거의 못 다녀요','학원 효율 0.9배 · 서울 취업하면 월세 부담']}];
 const TYPES=[
  {id:'model',name:'모범생',st:{int:58,phy:34,sens:40,charm:34,mnt:50,soc:34,luck:30},desc:'공부 루트에 강해요',look:{glasses:1}},
  {id:'insider',name:'인싸',st:{int:34,phy:38,sens:38,charm:52,mnt:36,soc:56,luck:26},desc:'반장 · 연예계 루트',look:{hair:'#6B4330',pin:1}},
@@ -1366,7 +1374,7 @@ function pathDef(kind){
     const P={elite:clamp((32-top)/26,0,.95),science:S.st.int>=75?clamp((12-top)/10+tag('sci')*.05,0,.9):0,
       arts:clamp((Math.max(S.st.sens,S.st.charm)-58)/30+(tag('art')+tag('music')+tag('stage'))*.05,0,.92),
       sport:clamp((S.st.phy-58)/30+tag('sport')*.05,0,.92),meister:clamp((S.st.int-50)/40+tag('code')*.07,0,.9)};
-    for(const k in P)if(P[k]>0)P[k]=Math.min(.95,P[k]+.05);
+    for(const k in P)if(P[k]>0)P[k]=Math.min(.95,P[k]+.05+((k==='elite'||k==='science')?(REG().elite||0):0));
     const tryIn=(id,ok,no)=>()=>{if(R()<P[id]){S.high=id;S.awards.push(HIGH[id].name+' 합격');return moment(ok,apply({stress:-3}))}S.high='normal';return moment(no,apply({stress:6}))};
     const pc=id=>P[id]>0?`합격 가능성 ${Math.round(P[id]*100)}%`:'지원 자격 미달';
     return {title:'고등학교 진학',desc:`중학교 내신은 평균 상위 ${top.toFixed(0)}%였어요.`,opts:[
@@ -1421,8 +1429,9 @@ function simTurn(){
   }
   if(sch.tag)S.tags[sch.tag]=(S.tags[sch.tag]||0)+1;
   for(const k of SK)S.st[k]=clamp(S.st[k]+(k==='phy'&&a>=14&&a<=16?2:1),1,99);
+  if(reg.charmT)S.st.charm=clamp(S.st.charm+reg.charmT,1,99);if(reg.socT)S.st.soc=clamp(S.st.soc+reg.socT,1,99);if(reg.phyT)S.st.phy=clamp(S.st.phy+reg.phyT,1,99);if(reg.mntT)S.st.mnt=clamp(S.st.mnt+reg.mntT,1,99);
   S.study=clamp(S.study+studyG,0,100);
-  S.stress=clamp(Math.round(S.stress+(a>=17?4:a>=14?2:0)+(sch.stress||0)-(S.st.mnt-45)/8-(S.bff?2:0)-(S.dating?2:0)),0,100);
+  S.stress=clamp(Math.round(S.stress+(a>=17?4:a>=14?2:0)+(reg.stressT||0)+(sch.stress||0)-(S.st.mnt-45)/8-(S.bff?2:0)-(S.dating?2:0)),0,100);
   const ti=S.t;
   const peer=.5*(42+3.2*ti)+.5*(6+7.5*ti)+reg.peer+(sch.peer||0)+(S.peerBonus||0);
   const me=.5*S.st.int+.5*S.study;
@@ -1529,13 +1538,13 @@ function renderCreate(){
     <div class="card col" style="gap:14px">
       <label class="field"><span class="label">이름</span><input id="nm" maxlength="8" placeholder="이름이나 별명" value="${esc(D.name)}" autocomplete="off"></label>
       <div class="field"><span class="label">성별</span><div class="seg">${['남','여'].map(g=>`<button type="button" data-g="${g}" aria-pressed="${D.gender===g}">${g==='남'?'남자':'여자'}</button>`).join('')}</div></div>
-      <label class="field"><span class="label">태어난 곳 · 1년 교육비 예산</span><select id="rg">${REGIONS.map(r=>`<option value="${r.id}" ${D.region===r.id?'selected':''}>${r.name} · ${man(r.budget)} · ${r.desc}</option>`).join('')}</select></label>
+      <div class="field"><span class="label">태어난 곳 · 장점과 단점이 있어요</span><div class="regions">${REGIONS.map(r=>`<button type="button" class="region" data-r="${r.id}" aria-pressed="${D.region===r.id}"><strong>${r.name}</strong><span class="pro">${r.pros.map(x=>'＋ '+esc(x)).join('<br>')}</span><span class="con">${r.cons.map(x=>'－ '+esc(x)).join('<br>')}</span></button>`).join('')}</div></div>
     </div>`;
     dock(`<button class="btn" id="next">다음</button>`);
     $('back').onclick=renderIntro;
     $('nm').oninput=e=>D.name=e.target.value.trim();
     document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{D.name=$('nm').value.trim();D.gender=b.dataset.g;renderCreate()});
-    $('rg').onchange=e=>D.region=e.target.value;
+    document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{D.name=$('nm').value.trim();D.region=b.dataset.r;renderCreate()});
     $('next').onclick=()=>{D.name=$('nm').value.trim()||pick(['김민준','이서연','박도윤','최하은','정지호','강서아']);D.step=2;renderCreate()};
   } else {
     const ty=TYPES.find(x=>x.id===D.type);
@@ -1692,7 +1701,7 @@ function calcSuneung(){
   if(c[1]<0&&chance(S.st.mnt/130))c=['긴장했지만 멘탈로 버텼어요.',0,-1,0];
   const base=.45*S.st.int+.55*S.study;
   const subj=['국어','수학','영어','탐구 1','탐구 2'].map((n,i)=>{
-    const z=(base-54)/22+SUN_BONUS+(S.st.mnt-50)/60+(S.st.phy-50)/150+(S.st.luck-50)/120-(S.stress>60?(S.stress-60)/80:0)+c[1]+(c[2]===i?c[3]:0)+(sch.sun||0)+randn()*.5;
+    const z=(base-54)/22+SUN_BONUS+(REG().sunZ||0)+(S.st.mnt-50)/60+(S.st.phy-50)/150+(S.st.luck-50)/120-(S.stress>60?(S.stress-60)/80:0)+c[1]+(c[2]===i?c[3]:0)+(sch.sun||0)+randn()*.5;
     if(n==='영어'){const raw=clamp(Math.round(72+z*13),20,100);return {n,g:raw>=90?1:clamp(10-Math.floor(raw/10),2,9),info:`원점수 ${raw}`}}
     const top=clamp(100*(1-sig(z)),.05,99.9);return {n,g:gradeOf(top),info:`백분위 ${Math.round(100-top)}`};
   });
@@ -1700,7 +1709,9 @@ function calcSuneung(){
   const naesin=Math.max(1,gradeOf(avgTop([5,6,7]))-(S.high==='elite'||S.high==='science'?.8:0));
   let eff=S.route==='susi'?.6*naesin+.4*avg:avg,note='';
   if(S.route==='susi'&&avg>naesin+2){eff+=.35;note='수능 최저 기준을 아슬아슬하게 못 맞췄어요.'}
-  if(REG().rural){eff-=.25;note+=(note?' ':'')+'농어촌 특별전형으로 지원했어요.'}
+  if(REG().rural&&S.route==='susi'){eff-=.25;note+=(note?' ':'')+'농어촌 특별전형으로 지원했어요.'}
+  if(S.route==='susi'&&REG().susi&&!REG().rural){eff+=REG().susi;note+=(note?' ':'')+'지역인재 전형으로 지원했어요.'}
+  if(S.route==='jungsi'&&REG().sun){eff+=REG().sun;note+=(note?' ':'')+'강남 학원가의 정시 노하우가 통했어요.'}
   if(S.flags.cheatCaught&&S.route==='susi'){eff+=.8;note+=(note?' ':'')+'시험 부정행위 징계로 수시 서류에서 감점됐어요.'}
   if(S.flags.hakpok){eff+=1.2;note+=(note?' ':'')+'학교폭력 조치 기록이 대입 감점으로 반영됐어요.'}
   eff=Math.max(1,eff);
@@ -1761,6 +1772,7 @@ function showPath19(id,detail){
   const happy=clamp(63-(S.stress-40)*.6+(S.bff?8:0)+(S.dating?6:0),15,90);
   S.ad={track:p.track,q:p.q,job:p.job||null,sal:p.sal||0,asset:0,debt:0,house:null,partner:S.dating?'dating':null,happy,health:clamp(S.st.phy+(S.flags.slow||0)*6,20,99),flags:{},ch:0,outfit:p.outfit,log:[],major:majorOf(id),lic:{civil:['9급합격'],chef:['조리기능사'],chef_f:['조리기능사'],police:['경찰간부']}[id]||[],booms:[],jobId:(p.track==='work'||p.track==='star')?JOB0[id]||null:null};
   if(S.ad.jobId)addTo(JKEY,S.ad.jobId);
+  if(REG().rural&&R()<.5)S.flags.landRural=1;
   if(S.flags.abroad&&!S.ad.lic.includes('외국어'))S.ad.lic.push('외국어');if(S.flags.smoke)S.ad.health=clamp(S.ad.health-6,20,99);
   S.phase='adult';save();
   const chat=shuffle(p.q>=.85?[['엄마',`${S.name} ${p.n}!!! 동네방네 다 자랑했다`],['아빠','👍 현수막 걸까'],['동생',`${sib()} 이제 나한테 잘해라`],['할머니','우리 강아지 장하다. 할미가 소 한 마리 잡을게'],['큰이모',`${S.name} 소식 들었다. 우리 애 공부 좀 봐 줘`]]
@@ -1913,6 +1925,7 @@ function eligibleJobs(){return JOBS.filter(j=>j[7]()&&j[0]!=='owner'&&j[0]!=='fi
 function jobOpt(j,{retry,earned,own,fit}={}){
   const id=j[0];let p=clamp(j[8]()+.05,.01,.99);
   if(earned)p=Math.max(p,.97);if(own)p=1;if(fit&&!earned&&!own)p=clamp(p+.2,.05,.95);
+  const rg=REG();if(rg.local&&['publicco','civil9','civil7','teacher','peteacher','kinder','socialworker'].includes(id))p=clamp(p+rg.local,0,.97);if(rg.farm&&['farmer','smartfarm'].includes(id))p=clamp(p+rg.farm,0,.97);if(rg.net&&['bigco','banker','analyst','lawyer','bigfirm','cpa'].includes(id))p=clamp(p+rg.net,0,.95);
   if(id==='progamer'&&S.flags.ban)p*=.2;if(['actor','musical','extra','singer'].includes(id)&&has('오디션경력'))p=clamp(p+.2,0,.95);if(['idol','actor','influencer','youtuber','streamer'].includes(id)&&(S.flags.tvKid||S.flags.viralKid))p=clamp(p+.15,0,.95);
   const tag2=earned?'합격 · 임용 대기':own?'하던 일 계속':fit?`${S.ad.major} 전공 우대`:j[2];
   return {l:j[1],s:`${tag2} · 연봉 ${rng(j[3],j[4])}${j[9]?' · 운빨':''}${id==='progamer'&&S.flags.ban?' · 계정 정지 이력':''}`,p,run:()=>{
@@ -1956,7 +1969,7 @@ function chapters(){
       :A.track==='star'||A.track==='work'?{l:'하던 일에 올인',s:'경력과 실력을 키워요',run:()=>{A.q+=.12;A.happy-=3;return {t:'20대 초반을 일에 갈아 넣었어요. 실력이 확실히 늘었어요.',fx:'커리어↑'}}}:null,
     ...(!A.major&&A.track==='lost'?[{l:'한 번 더 도전 · 대학 가기',s:'재수 · 편입',p:clamp(.35+st.int/250+st.mnt/500,.3,.8),run:()=>{const p=clamp(.35+st.int/250+st.mnt/500,.3,.8);if(R()<p){A.major=majorOf(st.int>=70?'inseoul':'local');A.q=Math.max(A.q,.5);A.track='univ';return {t:`재도전 끝에 ${A.major}과에 들어갔어요. 동기들보다 두 살 많아요.`,fx:`전공 · ${A.major}`}}A.happy-=10;return {t:'또 떨어졌어요. 이번엔 엄마도 아무 말을 안 했어요.',fx:'불합격'}}}]:[]),
     {l:'기술 자격증 따기',s:'미용 · 조리 · 제과 · 공인중개사 · 전기 · 대형면허 등',run:()=>({subDef:{title:'어떤 자격증을 딸까요?',desc:'학원비는 들지만 평생 써먹을 수 있어요.',opts:shuffle(TRADE_LIC).slice(0,6).map(([n,p])=>({l:n,s:'',p:p(),run:()=>{A.asset-=300;return licRun(`${n} 시험`,p,n,'1년')()}}))}})},
-    {l:'공무원 시험 준비',s:'9급 · 7급 · 소방 · 경찰',run:()=>({subDef:{title:'어떤 시험을 볼까요?',desc:'노량진 고시원 생활이 시작돼요. 붙으면 평생 직장이에요.',opts:EXAMS.map(([n,p,l])=>{const pp=()=>recP(n,p());return {l:n,s:recS(n),p:pp(),dis:pp()<=0,run:()=>{A.flags.exam=1;return licRun(n,pp,l,'3년',true)()}}})}})},
+    {l:'공무원 시험 준비',s:'9급 · 7급 · 소방 · 경찰',run:()=>({subDef:{title:'어떤 시험을 볼까요?',desc:'노량진 고시원 생활이 시작돼요. 붙으면 평생 직장이에요.',opts:EXAMS.map(([n,p,l])=>{const pp=()=>{const v=recP(n,p());return v>0&&REG().local&&/9급|7급/.test(n)?Math.min(.9,v+.08):v};return {l:n,s:recS(n),p:pp(),dis:pp()<=0,run:()=>{A.flags.exam=1;return licRun(n,pp,l,'3년',true)()}}})}})},
     {l:'청춘 낭만',s:'동아리 · 페스티벌 · 연애',run:()=>{A.happy+=10;if(!A.partner&&chance((st.charm+st.soc)/170))A.partner='dating';return {t:A.partner?'페스티벌에서 만난 사람과 사귀게 됐어요.':'잊지 못할 여름을 보냈어요.',fx:'행복↑'}}},
     {l:'워킹홀리데이 1년',s:'호주에서 일하고 영어 배우기',run:()=>{A.asset+=900;A.happy+=6;A.lic.push('외국어');A.flags.wh=1;return {t:'1년 동안 900만 원을 모으고 영어가 늘었어요.',fx:'자산 +900만 · 외국어'}}},
     {l:'일단 좀 쉰다',s:'이불 밖은 위험해',run:()=>{A.q-=.05;A.happy+=3;A.flags.rest1=1;return {t:'2년을 푹 쉬었어요. 넷플릭스 시청 기록이 1,400시간이에요.',fx:'커리어↓'}}}].filter(Boolean);
@@ -2366,7 +2379,7 @@ function careerOpts(){
   return [...base,...gen];
 }
 function careerRun(b){
-  const A=S.ad,p=typeof b.p==='function'?b.p():b.p,ok=R()<Math.min(1,p+.05),e=ok?b.ok:(b.no||{t:'잘 안 됐어요.'});const before=A.sal,parts=[];
+  const A=S.ad,p=(typeof b.p==='function'?b.p():b.p)+(jg()==='farm'?(REG().farm||0):0),ok=R()<Math.min(1,p+.05),e=ok?b.ok:(b.no||{t:'잘 안 됐어요.'});const before=A.sal,parts=[];
   if(e.to){const keepName=e.job;setJob(e.to);if(keepName)A.job=keepName}else if(e.job)A.job=e.job;
   if(e.sal)A.sal=e.sal();else if(e.salx!=null)A.sal=Math.round(A.sal*e.salx);
   if(e.asset)A.asset+=e.asset;if(e.happy)A.happy+=e.happy;if(e.health)A.health+=e.health;if(e.flag)A.flags[e.flag]=1;
@@ -2401,7 +2414,7 @@ const BOOMS=[
  {id:'viral',need:()=>tag('creator')>=4,art:['bedroom',()=>PROP.camera(70,186)+PROP.chartup(250,186),0],title:'역주행',desc:()=>'고등학생 때 올린 숏폼 영상이 갑자기 역주행해서 조회수 800만이 됐어요.',opts:[
    {l:'채널을 다시 키운다',s:'운',p:.35,run:()=>R()<.35+S.st.luck/400?(S.ad.sal+=4000,S.ad.flags.viral=1,{t:'광고 협찬이 들어오기 시작했어요. 본업보다 부업이 바빠요.',fx:'수입 +4천만'}):{t:'반짝 화제였어요. 한 달 만에 조용해졌어요.',fx:''}},
    {l:'흑역사라 지운다',s:'',run:()=>({t:'지웠는데 캡처본이 계속 돌아다녀요.',fx:''})}]},
- {id:'land',need:()=>S.flags.grandma,art:['yard',()=>PROP.house(250,186),1],title:'할머니의 땅',desc:()=>'할머니가 남기신 시골 밭이 신도시 개발 지역에 들어간대요.',opts:[
+ {id:'land',need:()=>S.flags.grandma||S.flags.landRural,art:['yard',()=>PROP.house(250,186),1],title:'할머니의 땅',desc:()=>'할머니가 남기신 시골 밭이 신도시 개발 지역에 들어간대요.',opts:[
    {l:'보상금을 받는다',s:'운',p:.4,run:()=>R()<.4?(S.ad.asset+=30000,{t:'보상금 3억이 나왔어요. 할머니 산소에 꽃을 사 들고 갔어요.',fx:'자산 +3억'}):(S.ad.asset+=2000,{t:'개발 계획이 축소돼서 보상금은 2천만 원이었어요.',fx:'자산 +2천만'})},
    {l:'팔지 않고 둔다',s:'',run:()=>({t:'할머니 밭은 그대로 남겨 두기로 했어요.',fx:''})}]},
  {id:'karma',need:()=>S.flags.lottoReturn,art:['street',()=>PROP.coins(250,186),0],title:'착한 일의 부메랑',desc:()=>'어릴 때 주운 복권을 파출소에 맡겼던 일을 기억하는 경찰관이 연락해 왔어요. 그때 그 복권 주인이 꼭 찾고 싶어 했대요.',opts:[
@@ -2455,11 +2468,14 @@ function afterChapter(key){
   if(['twenty','firstjob','money','career','love'].includes(key)&&R()<.25){const pool=SHOCKS.filter(x=>x.need(A));if(pool.length)queue.push('shock')}
   if(['firstjob','money','career'].includes(key)&&(A.booms||[]).length<2&&R()<.5&&pickBoom())queue.push('boom');
   if(key!=='love'&&!A.flags.lotto1&&R()<.01+S.st.luck/12000)queue.push('windfall');
+  if(['money','love'].includes(key)&&!A.flags.parentHelp&&R()<(REG().parent||0))queue.push('parent');
   const next=()=>{
     const q=queue.shift();
     if(q==='boom'){const b=pickBoom();if(!b){next();return}A.booms=(A.booms||[]).concat(b.id);save();
       showChoice({title:b.title,desc:b.desc,ages:'부메랑 · 학창 시절이 돌아왔어요',opts:b.opts,art:artSVG(b.art[0],b.art[1](),curAvatar({mood:b.art[2]}),'c'),after:r=>{A.happy=clamp(A.happy,0,100);adNote('부메랑 · '+r.t);save();
         openSheet(`<span class="label">부메랑 · ${esc(typeof b.title==='function'?b.title():b.title)}</span><div class="result">${esc(r.t)}${r.fx?`<span class="fx">${esc(r.fx)}</span>`:''}</div><p class="tiny" style="margin:0">학창 시절의 선택이 ${A.ch*4+16}살의 나에게 돌아왔어요.</p><button class="btn" id="ok">다음</button>`);$('ok').onclick=()=>{closeSheet();next()}}},null,false);return}
+    if(q==='parent'){const rg=REG(),amt=rg.parentAmt;A.flags.parentHelp=1;A.asset+=amt;A.happy+=4;const t=rg.id==='gangnam'?`아빠가 조용히 통장을 하나 건넸어요. "결혼할 때 쓰라고 모아 둔 거다." ${man(amt)}이에요.`:rg.id==='newtown'?`부모님 아파트값이 올라서 대출을 받아 ${man(amt)}을 보태 주셨어요.`:`부모님이 평생 모은 적금을 깨서 ${man(amt)}을 보내 주셨어요.`;adNote('부모님 · '+t);save();
+      openSheet(`<div class="scene">${artSVG('home',PROP.money(250,186),curAvatar({mood:6}),'c')}</div><span class="label">부모님의 지원 · ${esc(rg.name)} 출신</span><div class="result big">${esc(t)}<span class="fx">자산 +${man(amt)}</span></div>${chatHTML(famRoom(),famLines([['엄마','갚을 생각 하지 마'],['아빠','대신 손주 얼굴 자주 보여 줘'],['동생','나는? 나는?'],['할머니','할미도 조금 보탰다']],2))}<button class="btn" id="ok">감사합니다</button>`);$('ok').onclick=()=>{closeSheet();next()};return}
     if(q==='windfall'){A.flags.lotto1=1;A.flags.lottoDone=1;A.asset+=200000;save();
       showChoice({title:'로또 1등',ages:'토요일 밤 8시 45분',desc:'편의점에서 거스름돈 대신 산 로또 한 장. 번호 6개가 다 맞았어요. 세금 떼고 20억이에요. 확률 814만 분의 1.',art:artSVG(...AD_ART.lotto.slice(0,1),AD_ART.lotto[1](),curAvatar({mood:6}),'c'),opts:[
         {l:'인생 한 번, 플렉스',s:'슈퍼카 · 명품 · 지인 대출',run:()=>{if(R()<.55){A.asset=Math.round(A.asset*.1);A.flags.lottoBroke=1;A.happy-=14;return {t:'3년 만에 통장이 바닥났어요. 돈 빌려 간 친척들은 전화를 안 받아요.',fx:'당첨금 대부분 증발'}}A.happy+=10;A.asset=Math.round(A.asset*.6);return {t:'원 없이 썼는데도 12억이 남았어요. 운이 좋았어요.',fx:'자산 -40%'}}},
@@ -2514,6 +2530,10 @@ function renderAdult(){
   dock(`<button class="btn" id="go">${ch.title}</button>`);
   $('menu').onclick=showMenu;
   $('go').onclick=()=>showChoice({...ch,art:ch.key==='career'&&(A.jobId||A.job)?jobScene(1):artSVG(AD_ART[ch.key][0],AD_ART[ch.key][1](),curAvatar({mood:AD_ART[ch.key][2]}),'c'),after:r=>{
+    const rg=REG(),localJob=['farm','civil'].includes(jg())||['publicco','teacher','peteacher','kinder','socialworker','cop','firefighter'].includes(A.jobId);let rgNote='';
+    if(ch.key!=='love'&&A.jobId&&rg.rent&&!A.house&&!localJob){A.asset-=rg.rent;rgNote=`${rg.name}에서 올라와 서울 월세로 4년간 ${man(rg.rent)}이 나갔어요.`}
+    A.happy+=(rg.ahappy||0);A.health+=(rg.ahealth||0);if(rg.ahealth&&A.jobId&&ch.key==='firstjob')rgNote='신도시에서 서울까지 왕복 3시간. 지하철에서 인생의 1/8을 보내요.';if(ch.key==='career'&&rg.id==='gangnam'){A.happy-=4;rgNote='동창 단톡방에 의사 · 변호사 · 건물주 소식만 올라와요. 내가 작아져요.'}
+    if(rgNote)adNote('출신 · '+rgNote);
     A.happy=clamp(A.happy-3-(A.sal>=9000?3:0),0,100);A.health=clamp(A.health-3,0,100);adNote(`${ages} · ${r.t}`);const rl=realityLine(ch.key);if(rl)adNote('현실 · '+rl);A.ch++;save();
     openSheet(`<span class="label">${ages} · ${ch.title}</span><div class="scene">${adResultArt(ch.key)}</div><div class="result">${esc(r.t)}<span class="fx">${esc(r.fx||'')}</span></div>
       ${realityLine(ch.key)?`<p class="tiny" style="margin:0">${esc(realityLine(ch.key))}</p>`:''}
@@ -2612,6 +2632,7 @@ function realityCheck(A,net){
   if(S.flags.divorce)L.push('명절엔 엄마 집과 아빠 집을 하루씩 나눠서 가요.');
   if(S.flags.grandma)L.push('할머니 기일마다 그 용돈 봉투를 꺼내 봐요.');
   if(S.flags.hakpok)L.push('동창회 단톡방에서 아직도 그 일 얘기가 나와요.');
+  {const rg=REG();L.push(rg.id==='gangnam'?'강남 출신. 동창 평균 연봉을 들으면 내 연봉이 작아 보여요.':rg.id==='seoul'?'서울 강북 출신. 본가가 지하철 30분 거리라 명절이 편해요.':rg.id==='newtown'?'신도시 출신. 출퇴근 교통비로 1년에 300만 원이 나가요.':rg.id==='metro'?'지방 광역시 출신. 고향 친구들은 이미 집을 샀대요.':'농어촌 출신. 명절마다 트렁크 가득 쌀과 김치를 싣고 올라와요.')}
   if(S.flags.police)L.push('열여섯 살 토토 기록은 생활기록부엔 없지만 경찰 전산엔 남아 있어요.');
   if(A.flags.crime)L.push('이력서 상벌 칸을 쓸 때마다 손이 멈춰요. 벌금형 전과 1범이에요.');
   if(A.flags.totoWin)L.push('토토로 번 1억 8천. 국세청 알림 문자가 올 때마다 심장이 내려앉아요.');
