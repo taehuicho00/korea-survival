@@ -247,7 +247,8 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .rkrow{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:9px 10px;font:inherit}
 .rkrow.me{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .rkn{font-size:18px;text-align:center;font-weight:800}.rkm{display:flex;flex-direction:column;min-width:0}.rkm small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkv{font-weight:800;font-size:14px}
-.langsw{flex:none;align-self:flex-start;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;text-decoration:none}
+.langs{flex:none;align-self:flex-start;display:flex;gap:6px}
+.langsw{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;text-decoration:none}
 .fourcut{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:#1E1E22;border-radius:14px;padding:10px 10px 8px}
 .fourcut div{display:flex;flex-direction:column;gap:4px}
 .fourcut .ph{aspect-ratio:1;border-radius:8px;overflow:hidden;background:#333}
@@ -1539,7 +1540,7 @@ function dexBlock(name,order,got,nm,ds){
   return `<details class="card col"><summary class="between" style="cursor:pointer;list-style:none"><span class="label">${name}</span><span class="tiny num">${have} / ${order.length} · 展开</span></summary>
     <div class="dex" style="margin-top:10px">${order.map(id=>got.includes(id)?`<div class="got"><strong>${esc(nm(id))}</strong><span>${esc(ds?ds(id):'')}</span></div>`:`<div class="lock"><strong>???</strong><span>还没遇到</span></div>`).join('')}</div></details>`;
 }
-const LANG_SW=()=>/github\.io$/.test(location.hostname)?'<a class="langsw" href="../" lang="ko">한국어</a>':'';
+const LANG_SW=()=>/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="../" lang="ko">한국어</a><a class="langsw" href="../en/" lang="en">EN</a></span>':'';
 function renderIntro(){
   dock(null);
   const saved=ls.get(KEY,null),rec=ls.get(RKEY,[]),dx=ls.get(DKEY,[]),tx=ls.get(TKEY,[]);
@@ -1869,7 +1870,7 @@ const JOBS=[
  ['itfree',"IT自由职业","IT · 科研",3000,12000,'hoodie',.5,()=>tg('code',5),()=>.7,1],
  ['researcher',"研究员","IT · 科研",6500,8500,'coat',.25,()=>has("硕士")||((pth('kaist','snu')||maj("生命科学"))&&tg('sci',3)),()=>has("硕士")?.7:.4],
  ['professor',"教授","IT · 科研",9000,12000,'suit',.2,()=>pth('kaist','snu')&&tg('sci',4)&&sv('int')>=90,()=>.08],
- ['mech',"飞机维修师","IT · 科研",4500,6000,'farmer',.2,()=>maj("机械工程")||S.high==='meister'||has("电气工程师证"),()=>.5],
+ ['mech',"飞机维修师","IT · 科研",4500,6000,'farmer',.2,()=>maj("机械工程")||S.high==='meister'||has("电气工程师"),()=>.5],
  ['bigco',"大厂员工","打工人",5200,6500,'office',.45,()=>univ()&&qq()>=.6,()=>clamp(.08+qq()*.45+sv('int')/500,.05,.8)],
  ['publicco',"国企员工","打工人",4500,5500,'office',.35,()=>univ(),()=>.08+sv('int')/300+sv('mnt')/400],
  ['midco',"中型企业员工","打工人",3800,4500,'office',.45,()=>univ(),()=>.65],
@@ -1930,7 +1931,7 @@ const JOBS=[
  ['hotelchef',"酒店厨师","技术 · 服务",3400,4500,'chef',.1,()=>pth('chef')||(has("厨师证")&&tg('cook',5)),()=>.6],
  ['patissier',"甜点师","技术 · 服务",2800,4000,'chef',.1,()=>has("烘焙证"),()=>.85],
  ['barista',"咖啡师","人人皆可",2300,2800,'artist',.15,()=>true,()=>.9],
- ['elec',"电气工程师证","技术 · 服务",4500,6500,'farmer',.1,()=>has("电气工程师证"),()=>.85],
+ ['elec',"电气工程师","技术 · 服务",4500,6500,'farmer',.1,()=>has("电气工程师"),()=>.85],
  ['welder',"焊工","技术 · 服务",5000,7500,'farmer',.05,()=>has("焊工证"),()=>.9],
  ['busdriver',"公交司机","技术 · 服务",3800,4500,'office',.35,()=>has("大车驾照"),()=>.8],
  ['trucker',"货车司机","技术 · 服务",4500,7000,'farmer',.4,()=>has("大车驾照"),()=>.85],
@@ -1987,12 +1988,12 @@ const LIC_BY_MAJOR={
  "法学":[["法学院 → 律师考试",()=>clamp(.15+qq()*.4+sv('int')/400,.05,.75),"律师"]],
  "体育":[["社会体育指导员证",()=>.85,"社会体育指导员证"],["修读教资课程 · 体育考编",()=>clamp(.12+sv('int')/300+sv('mnt')/400,.08,.6),"教师编上岸"]],
  "教育":[["教师编制考试",()=>clamp(.15+sv('int')/250,.1,.65),"教师编上岸"]],"社会福利":[["社工师1级",()=>.85,"社工"]],"保健":[["物理治疗师国考",()=>.8,"康复治疗师"]],
- "心理":[["心理咨询师资格",()=>.55,"心理咨询"]],"计算机工程":[["软考证书",()=>.75,"软考证书"]],"电子工程":[["电气工程师证",()=>.6,"电气工程师证"]],"机械工程":[["电气工程师证",()=>.55,"电气工程师证"]],
+ "心理":[["心理咨询师资格",()=>.55,"心理咨询"]],"计算机工程":[["软考证书",()=>.75,"软考证书"]],"电子工程":[["电气工程师",()=>.6,"电气工程师"]],"机械工程":[["电气工程师",()=>.55,"电气工程师"]],
  "设计":[["做完作品集",()=>.8,"作品集"]],"流行音乐":[["攒选秀经验",()=>.7,"选秀经历"]],"戏剧影视":[["攒选秀经验",()=>.7,"选秀经历"]],"媒体":[["做完作品集",()=>.75,"作品集"]],
  "经营管理":[["注册会计师(CPA)",()=>clamp(.04+sv('int')/700,.03,.2),'CPA']],"经济":[["注册会计师(CPA)",()=>clamp(.04+sv('int')/700,.03,.2),'CPA']],"英语语言文学":[["读翻译硕士",()=>.5,"外语"],["修读教资课程 · 考编",()=>clamp(.1+sv('int')/300,.08,.5),"教师编上岸"]],
  "中文":[["修读教资课程 · 考编",()=>clamp(.1+sv('int')/300,.08,.5),"教师编上岸"]],"生命科学":[["读研（硕士）",()=>.7,"硕士"]],"统计":[["ADsP · 大数据分析师",()=>.75,"大数据分析师证"]],"餐饮烹饪":[["厨师证",()=>.9,"厨师证"]],
  "航空服务":[["空乘培训学院",()=>.8,"外语"]],"政治外交":[["外交官候选人考试",()=>.05,"外交官考试上岸"]],"警察行政":[["警察干部培训 · 授警衔",()=>1,"警察干部"]],"军事学":[["军官授衔",()=>1,"军官授衔"]]};
-const TRADE_LIC=[["美发师证",()=>.8],["厨师证",()=>.85],["烘焙证",()=>.8],["房产中介",()=>clamp(.15+sv('int')/400,.1,.45)],["电气工程师证",()=>clamp(.2+sv('int')/300,.15,.6)],["焊工证",()=>.8],
+const TRADE_LIC=[["美发师证",()=>.8],["厨师证",()=>.85],["烘焙证",()=>.8],["房产中介",()=>clamp(.15+sv('int')/400,.1,.45)],["电气工程师",()=>clamp(.2+sv('int')/300,.15,.6)],["焊工证",()=>.8],
  ["大车驾照",()=>.9],["护理助理",()=>.8],["护工",()=>.95],["宠物美容证",()=>.85],["普拉提",()=>clamp(.4+sv('phy')/250,.4,.9)],["社会体育指导员证",()=>clamp(.3+sv('phy')/200,.3,.9)]];
 const EXAMS=[["9级公务员",()=>clamp(.06+sv('int')/500+sv('mnt')/500,.05,.45),"9级公务员上岸"],["7级公务员",()=>clamp(.02+sv('int')/600,.02,.2),"7级公务员上岸"],
  ["消防公务员",()=>sv('phy')>=60?clamp(.1+sv('phy')/300,.1,.5):.03,"消防员上岸"],["警察公务员",()=>sv('phy')>=55?clamp(.1+sv('phy')/400+sv('int')/500,.1,.45):.03,"警察上岸"]];
@@ -2329,7 +2330,7 @@ const CAREER_ADD={
  ceo:[{l:"把公司关了",s:'',p:1,ok:{t:"把公司清算掉，进了大厂新业务部。",job:"大厂新业务部",to:'bigco',sal:()=>rsal(7000,9000),happy:4}},{l:"转型",s:'',p:.3,ok:{t:"换了个方向，营收直接起飞。",salx:1.8},no:{t:"转型也失败了。",salx:.4,happy:-10}}],
  publicco:[{l:"工会主席",s:'',p:.3,ok:{t:"当选工会主席。",job:"国企工会主席",salx:1.05,happy:4},no:{t:"落选了。"}},{l:"跳槽去民企",s:'',p:.35,ok:{t:"社招跳去大厂了。",job:"大厂科长",to:'bigco',sal:()=>rsal(7000,8500)},no:{t:"挂了。"}}],
  midco:[{l:"辞职创业",s:'',p:.25,ok:{t:"开了家给同行供货的公司。",job:"小公司老板",salx:1.8,flag:'biz'},no:{t:"关门了。",flag:'bizFail',asset:-5000}},{l:"外派海外分公司",s:'',p:()=>has("外语")?.5:.2,ok:{t:"外派去了印尼分公司。",job:"海外分公司科长",salx:1.4},no:{t:"外派泡汤了。"}}],
- smallco:[{l:"再战考公",s:'',p:.15,ok:{t:"下班后苦读，9级公务员上岸了。",job:"9级公务员",to:'civil9',sal:()=>rsal(3100,3500),happy:6},no:{t:"挂了。",happy:-4}},{l:"考证转行",s:'',p:.5,ok:{t:"考下电气工程师证，成功转行。",job:"电气工程师证",to:'elec',sal:()=>rsal(4500,6000)},no:{t:"挂了。"}}],
+ smallco:[{l:"再战考公",s:'',p:.15,ok:{t:"下班后苦读，9级公务员上岸了。",job:"9级公务员",to:'civil9',sal:()=>rsal(3100,3500),happy:6},no:{t:"挂了。",happy:-4}},{l:"考证转行",s:'',p:.5,ok:{t:"考下电气工程师证，成功转行。",job:"电气工程师",to:'elec',sal:()=>rsal(4500,6000)},no:{t:"挂了。"}}],
  marketer:[{l:"品牌经理",s:'',p:.35,ok:{t:"跳槽成大厂品牌经理。",job:"品牌经理",salx:1.4},no:{t:"挂了。"}},{l:"打造个人IP",s:'',p:.25,ok:{t:"营销周刊5万订阅者。演讲邀约不断。",salx:1.5},no:{t:"毫无水花。"}}],
  hr:[{l:"开HR咨询公司",s:'',p:.3,ok:{t:"开了家HR咨询公司。",salx:1.7,flag:'biz'},no:{t:"关门了。",flag:'bizFail'}},{l:"挑战劳务师",s:'',p:.15,ok:{t:"考上了注册劳务师。",job:"注册劳务师",sal:()=>rsal(7000,12000)},no:{t:"挂了。"}}],
  sales:[{l:"销冠 → 高管",s:'',p:.25,ok:{t:"凭业绩第一当上最年轻的常务。",job:"销售常务",salx:1.8},no:{t:"业绩开始下滑了。",salx:.9}},{l:"跳槽去外企",s:'',p:.4,ok:{t:"跳槽去了外企。",salx:1.3,happy:4},no:{t:"挂了。"}}],
@@ -2827,7 +2828,7 @@ const HOME_URL='https://taehuicho00.github.io/korea-survival/zh/';
 const rkFailMsg=()=>/github\.io$/.test(location.hostname)?"连不上排行榜服务器。请稍后再试。":`排行榜只能在官网打开。<a href="${HOME_URL}" target="_blank" rel="noopener">去官网打开</a>`;
 function rankPayload(A,net,main,titles,score,nick){
   const h=S.hist;
-  const life={n:nick,g:S.gender,sk:S.skin,num:S.num,lk:lookNow(),m:[h[1]?h[1].mood:0,h[3]?h[3].mood:1,h[7]?h[7].mood:2,moodOf(100-A.happy)],o7:h[7]?h[7].outfit:'uniform',o:A.outfit,
+  const life={n:nick,g:S.gender==="女"?'F':'M',sk:S.skin,num:S.num,lk:lookNow(),m:[h[1]?h[1].mood:0,h[3]?h[3].mood:1,h[7]?h[7].mood:2,moodOf(100-A.happy)],o7:h[7]?h[7].outfit:'uniform',o:A.outfit,
     ti:main,ts:titles.slice(1,6),job:A.job||"无业",reg:REG().name,path:PATHS[S.path19].n,maj:A.major||'',sal:A.sal,net,hp:Math.round(A.happy),he:Math.round(A.health),house:A.house,
     fam:(A.partner==='married'?"已婚":A.partner?"恋爱中":"单身")+(A.spouse&&A.partner==='married'?' · '+(A.spouse==='long'?"交往多年的恋人":SP_TYPES[A.spouse].tag):'')+(A.flags.kid?" · 孩子1个":''),
     sc:score,log:(A.log||[]).slice(0,8)};
@@ -2857,7 +2858,7 @@ async function showLife(id,tab,mine){
   let d;try{const j=await rankApi('a=get&id='+id);d=JSON.parse(j.data)}catch(e){d=null}
   if(!d){openSheet(`<h2 class="sheet-title">加载失败</h2><button class="btn ghost" id="rkb">返回排行榜</button>`);$('rkb').onclick=()=>renderRanking(tab,mine);return}
   const bgs=['#DDEFF8','#F3EAD6','#D9DEF0','#F7D9C0'],caps=["小学 · 10岁","初二 · 15岁","高三 · 19岁","35岁 · 现在"],ofs=['kid','uniform',d.o7||'uniform',d.o||'office'];
-  const cut=i=>`<div><div class="ph">${avatarSVG({g:d.g,stage:i,mood:(d.m||[])[i]||0,outfit:ofs[i],look:d.lk||{},skin:d.sk,num:d.num,bg:bgs[i]})}</div><span>${caps[i]}</span></div>`;
+  const cut=i=>`<div><div class="ph">${avatarSVG({g:d.g==='F'?"女":d.g==='M'?"男":d.g,stage:i,mood:(d.m||[])[i]||0,outfit:ofs[i],look:d.lk||{},skin:d.sk,num:d.num,bg:bgs[i]})}</div><span>${caps[i]}</span></div>`;
   const T=TITLES[d.ti];
   openSheet(`<span class="label">${esc(d.reg)}出身 · ${esc(d.path)}${d.maj?` · ${esc(d.maj)}`:''}</span><h2 class="sheet-title">${esc(d.n)}的人生</h2>
   <div class="fourcut">${[0,1,2,3].map(cut).join('')}<div class="cap">${esc(d.n)}的四格相册</div></div>
@@ -2886,8 +2887,10 @@ function shareCardSVG(o){
   ${box(84,1100,450,"年薪 · 韩国打工人",o.salTop,o.sal,'#2B2F4F')}${box(546,1100,450,"净资产 · 韩国家庭",o.netTop,o.net,'#4A2B3E')}
   <text x="${W/2}" y="1300" text-anchor="middle" font-family="${F}" font-size="26" fill="#646A74">taehuicho00.github.io/korea-survival/zh · 我是前百分之几的人生？</text></svg>`;
 }
+function fixCard(svg,o){const wu=s=>[...String(s)].reduce((a,c)=>a+(/[\u1100-\uffff]/.test(c)?1:.56),0),fit=(s,max,px)=>Math.max(18,Math.min(max,Math.floor(px/Math.max(1,wu(s)))));
+  return svg.replace('font-size="64" font-weight="900" fill="#1F2430">',`font-size="${fit(o.title,64,650)}" font-weight="900" fill="#1F2430">`).replace('font-size="34" font-weight="900" fill="#D0432E">',`font-size="${fit(o.region,34,200)}" font-weight="900" fill="#D0432E">`)}
 function saveShareCard(o,btn,msg){
-  const svg=shareCardSVG(o);const img=new Image();btn.disabled=true;msg.textContent="图片生成中…";
+  const svg=fixCard(shareCardSVG(o),o);const img=new Image();btn.disabled=true;msg.textContent="图片生成中…";
   img.onload=()=>{try{const c=document.createElement('canvas');c.width=1080;c.height=1350;const g=c.getContext('2d');g.drawImage(img,0,0);
     c.toBlob(async b=>{btn.disabled=false;if(!b){msg.textContent="图片生成失败";return}
       const file=new File([b],"在韩国活下去-结果.png",{type:'image/png'});
