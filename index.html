@@ -73,6 +73,7 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .scene svg{display:block;width:100%;height:100%}
 .skins button{display:flex;align-items:center;justify-content:center;gap:6px}.skins i{width:14px;height:14px;border-radius:50%;background:var(--sk);border:1px solid rgba(0,0,0,.2)}
 .regions{display:flex;flex-direction:column;gap:8px}.region{display:flex;flex-direction:column;gap:4px;text-align:left;border:1.5px solid var(--line);background:var(--paper);border-radius:12px;padding:12px 13px;width:100%}.region[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--card));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}.region strong{font-size:16px}.region .pro{font-size:13.5px;color:var(--good);line-height:1.5}.region .con{font-size:13.5px;color:var(--stamp);line-height:1.5}
+.scene::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;opacity:.35;background-image:radial-gradient(rgba(40,30,20,.13) .6px,transparent .7px),radial-gradient(rgba(255,255,255,.1) .6px,transparent .7px);background-size:3px 3px,4px 4px;background-position:0 0,1px 2px;mix-blend-mode:multiply}
 .scene::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1),inset 0 -30px 40px -30px rgba(0,0,0,.35);pointer-events:none}
 @media (prefers-reduced-motion:no-preference){
   .scene svg,.ph svg{animation:scene-in .45s ease-out}
@@ -86,9 +87,9 @@ h1,h2,h3{text-wrap:balance;margin:0}
   .rainy{animation:rainy .7s linear infinite}
   @keyframes rainy{from{transform:translate(4px,-12px)}to{transform:translate(0,0)}}
 }
-.thought{position:absolute;left:12px;top:14px;max-width:42%;background:var(--bubble);color:var(--ink);border-radius:14px;padding:7px 11px;font-family:var(--f-hand);font-size:18px;line-height:1.25;box-shadow:var(--shadow)}
+.thought{z-index:2;position:absolute;left:12px;top:14px;max-width:42%;background:var(--bubble);color:var(--ink);border-radius:14px;padding:7px 11px;font-family:var(--f-hand);font-size:18px;line-height:1.25;box-shadow:var(--shadow)}
 .thought::after{content:"";position:absolute;right:-6px;bottom:8px;width:12px;height:12px;background:var(--bubble);transform:rotate(45deg);border-radius:2px}
-.stamp-age{position:absolute;right:10px;top:10px;font-family:var(--f-display);font-size:13px;color:#fff;background:rgba(0,0,0,.45);border-radius:8px;padding:3px 8px}
+.stamp-age{z-index:2;position:absolute;right:10px;top:10px;font-family:var(--f-display);font-size:13px;color:#fff;background:rgba(0,0,0,.45);border-radius:8px;padding:3px 8px}
 
 /* 시작 */
 .hero{display:grid;gap:14px}
@@ -243,7 +244,7 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .titles span{font-size:13px;font-weight:700;background:var(--soft);border-radius:999px;padding:4px 10px}
 .dex{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .dex div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;background:var(--paper);min-width:0}
-.dex div.lock{color:var(--muted)}
+.dex div{display:flex;flex-direction:column;gap:3px}.dex div strong{font-size:14px;line-height:1.3}.dex div span{font-size:12px;line-height:1.45;color:var(--muted)}.dex div.got{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 7%,var(--card))}.dex div.lock{color:var(--muted)}.dex div.lock strong{color:var(--muted)}
 .dex div b{display:block;font-size:11px;color:var(--muted);font-weight:600}
 textarea.copy{width:100%;min-height:130px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;padding:10px}
 .card summary::-webkit-details-marker{display:none}
@@ -494,13 +495,30 @@ const T=()=>TURNS[S.t],REG=()=>REGIONS.find(r=>r.id===S.region),budgetNow=()=>S.
 const gradeOf=top=>top<=4?1:top<=11?2:top<=23?3:top<=40?4:top<=60?5:top<=77?6:top<=89?7:top<=96?8:9;
 const classSize=a=>a<=13?120:a<=16?240:300;
 const tag=k=>S.tags[k]||0;
-const sib=()=>S.gender==='남'?'형':'언니';
+const hasJong=w=>{const c=String(w).trim().slice(-1).charCodeAt(0);return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28>0};
+const jongL=w=>{const c=String(w).trim().slice(-1).charCodeAt(0);return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28===8};
+const nm=w=>w&&hasJong(w)?w+'이':w; // 하준 → 하준이 (친구 이름 부를 때)
+const eul=w=>w+(hasJong(w)?'을':'를'),ro=w=>w+(hasJong(w)&&!jongL(w)?'으로':'로');
+const sib=()=>S.gender==='남'?(S.sibG==='여'?'오빠':'형'):(S.sibG==='여'?'언니':'누나');
 
 // ===================== 저장 =====================
 const KEY='krsurvive:save',RKEY='krsurvive:records',DKEY='krsurvive:dex',TKEY='krsurvive:tdex';
 const ls={get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
 const save=()=>ls.set(KEY,S);
 const addTo=(k,id)=>{const d=ls.get(k,[]);if(!d.includes(id)){d.push(id);ls.set(k,d)}};
+const SAVE_V=6;
+// 예전 저장 데이터를 지금 버전에 맞게 채워 넣어요
+function migrate(s){
+  if(!s||typeof s!=='object'||!(s.v>=5))return null;
+  try{
+    s.flags=s.flags||{};s.tags=s.tags||{};s.used=s.used||[];s.hist=s.hist||[];s.awards=s.awards||[];s.awardsAll=s.awardsAll||[];s.moments=s.moments||[];s.sys=s.sys||[];s.yfx=s.yfx||{};
+    if(!s.fam)s.fam=['엄마','아빠','할머니','동생'];if(!s.sibG)s.sibG=Math.random()<.5?'남':'여';if(s.ev2===undefined)s.ev2=null;
+    if(!REGIONS.find(r=>r.id===s.region))s.region='seoul';
+    if(s.ad){const A=s.ad;A.flags=A.flags||{};A.lic=A.lic||[];A.booms=A.booms||[];A.log=A.log||[];A.seen=A.seen||[];if(A.major===undefined)A.major=null;if(A.jobId===undefined)A.jobId=null;if(A.jobId&&!JOBMAP[A.jobId])A.jobId=null;if(typeof A.ch!=='number')A.ch=0;A.ch=Math.min(A.ch,4)}
+    s.v=SAVE_V;return s;
+  }catch(e){return null}
+}
+function safeResume(s){const m=migrate(JSON.parse(JSON.stringify(s)));if(!m){ls.del(KEY);renderIntro();return}S=m;try{S.phase==='adult'?renderAdult():renderHome()}catch(e){ls.del(KEY);S=null;renderIntro();openSheet(`<span class="label">업데이트 안내</span><h2 class="sheet-title">게임이 업데이트됐어요</h2><p class="lead">예전 버전에서 하던 인생은 이어서 할 수 없어요. 새 인생으로 시작해 주세요. 도감과 기록은 그대로 남아 있어요.</p><button class="btn" id="ok">확인</button>`);$('ok').onclick=closeSheet}}
 function addRecord(r){const a=ls.get(RKEY,[]);a.push(r);a.sort((x,y)=>y.score-x.score);ls.set(RKEY,a.slice(0,5))}
 let S=null,D=null;
 
@@ -1083,7 +1101,7 @@ const GRAIN=u=>`<defs><filter id="${u}grn" x="0" y="0" width="100%" height="100%
 function artSVG(bg,props,avatar,where='c',front=''){
   const u=uid(),cx=SCENE_X[where]||160,s=1.16,tx=cx-50*s,ty=190-127*s;
   const inner=(avatar||'').replace(/<\/?svg[^>]*>/g,'');
-  return `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="장면"><defs>${gRad(u+'csh',[[0,'#000',.22],[1,'#000',0]])}</defs>${(BG[bg]||BG.yard)(u)}<ellipse cx="${cx}" cy="191" rx="58" ry="10" fill="url(#${u}csh)"/>${props||''}<g transform="translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${s})">${inner}</g>${(FG[bg]||(()=>''))(u)}${front}${VIG(u)}${GRAIN(u)}</svg>`;
+  return `<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="장면"><defs>${gRad(u+'csh',[[0,'#000',.22],[1,'#000',0]])}</defs>${(BG[bg]||BG.yard)(u)}<ellipse cx="${cx}" cy="191" rx="58" ry="10" fill="url(#${u}csh)"/>${props||''}<g transform="translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${s})">${inner}</g>${(FG[bg]||(()=>''))(u)}${front}${VIG(u)}</svg>`;
 }
 // 활동 아이콘
 const ICON={
@@ -1158,8 +1176,8 @@ const BOYS=['하준','도현','시우','유찬','건우','민재','태윤','지�
 const FRIENDS=[...BOYS,...GIRLS];
 const EVENTS=[
  {id:'newkid',min:8,max:10,title:'전학 온 친구',desc:()=>`전학 온 ${S.bffCand}, 쉬는 시간마다 혼자 있어요.`,opts:[
-   {l:'먼저 말을 건다',s:'단짝이 생길 수 있어요',run:()=>{S.bff=S.bffCand;return moment(`${S.bff}와(과) 단짝이 됐어요.`,apply({soc:3,mnt:1,stress:-4}))}},
-   {l:'지켜본다',s:'',run:()=>moment(`${S.bffCand}는 다른 반 친구들과 친해졌어요.`,'')}]},
+   {l:'먼저 말을 건다',s:'단짝이 생길 수 있어요',run:()=>{S.bff=S.bffCand;return moment(`${nm(S.bff)}와 단짝이 됐어요.`,apply({soc:3,mnt:1,stress:-4}))}},
+   {l:'지켜본다',s:'',run:()=>moment(`${nm(S.bffCand)}는 다른 반 친구들과 친해졌어요.`,'')}]},
  {id:'yoonjung',min:8,max:13,title:'숏폼 챌린지',desc:()=>'반 친구들이 요즘 유행하는 댄스 챌린지를 같이 찍자고 해요.',opts:[
    {l:'영혼 없이 춘다',s:'매력 · 영상 경험',run:()=>chance(S.st.charm/90)?moment('조회수 2만이 나왔어요. 담임쌤도 봤대요.',apply({charm:2,'tag:creator':2,soc:2})):moment('조회수 31회. 그래도 재밌었어요.',apply({'tag:creator':1,stress:-3}))},
    {l:'촬영 담당만 한다',s:'',run:()=>moment('카메라 감독이라는 별명이 생겼어요.',apply({sens:1,'tag:creator':1}))},
@@ -1171,9 +1189,9 @@ const EVENTS=[
    {l:'오픈런 줄을 선다',s:'예산 -5만 원, 스트레스 감소',run:()=>moment('2시간 줄 서서 겨우 샀어요. 맛은… 쫀득했어요.',apply({money:-5,stress:-6,soc:1}))},
    {l:'직접 만들어서 판다',s:'요리 경험 · 감성 · 운',run:()=>chance((S.st.sens+S.st.luck)/170+tag('cook')*.05)?(S.flags.dzkSell=1,moment('반 친구들에게 다 팔렸어요. 장사 재능 발견.',apply({money:12,'tag:cook':2,soc:2}))):moment('피스타치오를 너무 많이 넣어서 적자가 났어요.',apply({money:-3,'tag:cook':1}))},
    {l:'관심 없다',s:'',run:()=>moment('유행은 3주 만에 지나갔어요.',apply({mnt:1}))}]},
- {id:'bfffight',min:11,max:16,need:()=>S.bff,title:()=>`${S.bff}와(과) 다툼`,desc:()=>`사소한 오해로 ${S.bff}와(과) 일주일째 말을 안 하고 있어요.`,opts:[
-   {l:'먼저 사과한다',s:'',run:()=>moment(`${S.bff}가 먼저 웃으며 매점 가자고 했어요.`,apply({soc:2,mnt:2,stress:-3}))},
-   {l:'자존심을 지킨다',s:'',run:()=>{if(R()<.5){const f=S.bff;S.bff=null;return moment(`${f}와(과) 멀어졌어요.`,apply({stress:8,mnt:1}))}return moment(`결국 ${S.bff}가 먼저 연락했어요.`,apply({stress:2}))}}]},
+ {id:'bfffight',min:11,max:16,need:()=>S.bff,title:()=>`${nm(S.bff)}와 다툼`,desc:()=>`사소한 오해로 ${nm(S.bff)}와 일주일째 말을 안 하고 있어요.`,opts:[
+   {l:'먼저 사과한다',s:'',run:()=>moment(`${nm(S.bff)}가 먼저 웃으며 매점 가자고 했어요.`,apply({soc:2,mnt:2,stress:-3}))},
+   {l:'자존심을 지킨다',s:'',run:()=>{if(R()<.5){const f=S.bff;S.bff=null;return moment(`${nm(f)}와 멀어졌어요.`,apply({stress:8,mnt:1}))}return moment(`결국 ${nm(S.bff)}가 먼저 연락했어요.`,apply({stress:2}))}}]},
  {id:'parents',min:9,max:16,title:'의대 열풍',desc:()=>'저녁 식탁에서 부모님이 "요즘은 다 의대 간다더라"고 하셨어요.',opts:[
    {l:'의대 가겠다고 한다',s:'학업↑ 스트레스↑',run:()=>moment('책상 앞에 의대 합격 수기가 붙었어요.',apply({study:4,stress:8}))},
    {l:'내 꿈을 말한다',s:'',run:()=>moment('처음으로 하고 싶은 걸 이야기했어요.',apply({mnt:3,stress:-4}))}]},
@@ -1184,14 +1202,14 @@ const EVENTS=[
  {id:'puberty',min:14,max:15,title:'중2병',desc:()=>'요즘 부모님 말씀이 다 잔소리처럼 들려요.',opts:[
    {l:'방문을 닫는다',s:'',run:()=>moment('방문을 쾅 닫는 소리가 집안에 울렸어요.',apply({stress:-6,mnt:-2,charm:1}))},
    {l:'꾹 참는다',s:'',run:()=>moment('일기장에 하고 싶은 말을 적었어요.',apply({mnt:3,stress:5}))}]},
- {id:'crush',min:14,max:17,title:'좋아하는 사람',desc:()=>`같은 반 ${S.crushCand}에게 자꾸 눈이 가요.`,opts:[
-   {l:'고백한다',s:'매력 · 인맥 · 운이 높을수록 성공',run:()=>{if(chance((S.st.charm*.5+S.st.soc*.25+S.st.luck*.25)/100)){S.dating=S.crushCand;S.awards.push('첫 연애');return moment(`${S.dating}와(과) 사귀게 됐어요.`,apply({stress:-12,charm:1}))}return moment('친구로 지내자는 답을 들었어요.',apply({mnt:2,stress:8}))}},
+ {id:'crush',min:14,max:17,title:'좋아하는 사람',desc:()=>`같은 반 ${nm(S.crushCand)}에게 자꾸 눈이 가요.`,opts:[
+   {l:'고백한다',s:'매력 · 인맥 · 운이 높을수록 성공',run:()=>{if(chance((S.st.charm*.5+S.st.soc*.25+S.st.luck*.25)/100)){S.dating=S.crushCand;S.awards.push('첫 연애');return moment(`${nm(S.dating)}와 사귀게 됐어요.`,apply({stress:-12,charm:1}))}return moment('친구로 지내자는 답을 들었어요.',apply({mnt:2,stress:8}))}},
    {l:'마음에만 둔다',s:'',run:()=>moment('졸업 앨범에서 그 사진만 오래 봤어요.',apply({sens:1}))}]},
- {id:'anniv',min:15,max:18,need:()=>S.dating,title:'100일 기념일',desc:()=>`${S.dating}와(과) 사귄 지 100일이에요.`,opts:[
+ {id:'anniv',min:15,max:18,need:()=>S.dating,title:'100일 기념일',desc:()=>`${nm(S.dating)}와 사귄 지 100일이에요.`,opts:[
    {l:'커플링을 산다',s:'예산 -15만 원',run:()=>moment('은반지 두 개를 샀어요.',apply({money:-15,stress:-6,charm:1}))},
-   {l:'손편지를 쓴다',s:'',run:()=>moment(`${S.dating}가 편지를 지갑에 넣고 다녀요.`,apply({sens:2,stress:-4}))}]},
- {id:'dateexam',min:18,max:19,need:()=>S.dating,title:'연애와 수험 사이',desc:()=>`시험이 다가오는데 ${S.dating}와(과) 연락할 시간이 줄었어요.`,opts:[
-   {l:'시험까지 거리를 둔다',s:'',run:()=>{if(R()<.4){const d=S.dating;S.dating=null;S.exDating=d;return moment(`${d}와(과) 헤어졌어요.`,apply({stress:10,study:3}))}return moment('시험 끝나고 만나기로 약속했어요.',apply({study:3,stress:3}))}},
+   {l:'손편지를 쓴다',s:'',run:()=>moment(`${nm(S.dating)}가 편지를 지갑에 넣고 다녀요.`,apply({sens:2,stress:-4}))}]},
+ {id:'dateexam',min:18,max:19,need:()=>S.dating,title:'연애와 수험 사이',desc:()=>`시험이 다가오는데 ${nm(S.dating)}와 연락할 시간이 줄었어요.`,opts:[
+   {l:'시험까지 거리를 둔다',s:'',run:()=>{if(R()<.4){const d=S.dating;S.dating=null;S.exDating=d;return moment(`${nm(d)}와 헤어졌어요.`,apply({stress:10,study:3}))}return moment('시험 끝나고 만나기로 약속했어요.',apply({study:3,stress:3}))}},
    {l:'같이 독서실에 다닌다',s:'',run:()=>moment('서로 졸면 깨워주기로 했어요.',apply({study:2,stress:-3}))}]},
  {id:'chat',min:13,max:17,title:'단톡방 뒷담',desc:()=>'반 단톡방에서 한 친구 뒷담이 시작됐어요.',opts:[
    {l:'조용히 나온다',s:'',run:()=>moment('마음은 편해요.',apply({mnt:3,soc:-2}))},
@@ -1364,7 +1382,7 @@ const goalChance=id=>{const f=goalFit(id);return [0,1,2].reduce((p,r)=>p*roundP(
 function pathDef(kind){
   if(kind==='mid'){
     const opts=[{l:'집 근처 중학교',s:'친구들과 같이 진학',run:()=>{S.mid='near';return moment('초등학교 친구들 절반과 같은 중학교에 갔어요.',apply({stress:-3}))}}];
-    if(S.region!=='gangnam')opts.push({l:'학군지로 이사',s:'학업 성장↑, 단짝과 멀어질 수 있어요',run:()=>{S.mid='move';S.hakBonus=.15;S.peerBonus=2;let t='짐을 싸서 학원가 근처로 이사했어요.';if(S.bff&&R()<.6){t+=` ${S.bff}와(과)는 연락이 뜸해졌어요.`;S.bff=null}return moment(t,apply({stress:6,soc:-3,study:2}))}});
+    if(S.region!=='gangnam')opts.push({l:'학군지로 이사',s:'학업 성장↑, 단짝과 멀어질 수 있어요',run:()=>{S.mid='move';S.hakBonus=.15;S.peerBonus=2;let t='짐을 싸서 학원가 근처로 이사했어요.';if(S.bff&&R()<.6){t+=` ${nm(S.bff)}와는 연락이 뜸해졌어요.`;S.bff=null}return moment(t,apply({stress:6,soc:-3,study:2}))}});
     else opts.push({l:'대치동 학원 풀코스',s:'학업 성장↑ 스트레스↑',run:()=>{S.mid='daechi';S.hakBonus=.2;return moment('주 6일 학원 시간표가 생겼어요.',apply({stress:8,study:3}))}});
     opts.push({l:'대안학교',s:'학업↓ 감성 · 멘탈↑ 스트레스↓',run:()=>{S.mid='alt';S.hakBonus=-.2;return moment('숲속에 있는 작은 학교에 들어갔어요.',apply({sens:3,mnt:2,stress:-10}))}});
     return {title:'중학교 진학',desc:'초등학교를 졸업했어요. 어디서 중학교를 다닐까요?',opts};
@@ -1399,7 +1417,7 @@ function pathDef(kind){
 function goalDef(route){
   const ids=Object.keys(GOALS).filter(k=>GOALS[k].route===route);
   return {title:route==='dream'?'어떤 꿈에 도전할까요?':route==='job'?'어디에 취업할까요?':'어떤 전공으로 갈까요?',desc:'지금 능력치와 경험으로 계산한 성공 가능성이에요. 남은 2년 스케줄로 올릴 수 있어요.',
-    opts:ids.map(id=>{const g=GOALS[id];return {l:g.n,s:`핵심: ${Object.keys(g.w).sort((a,b)=>g.w[b]-g.w[a]).slice(0,2).map(k=>SN[k]).join(' · ')} · ${TAGN[g.tag]} 경험`,p:goalChance(id),run:()=>{S.route=route;S.goal=id;return moment(`${g.n}을(를) 목표로 정했어요.`,apply({mnt:1}))}}})};
+    opts:ids.map(id=>{const g=GOALS[id];return {l:g.n,s:`핵심: ${Object.keys(g.w).sort((a,b)=>g.w[b]-g.w[a]).slice(0,2).map(k=>SN[k]).join(' · ')} · ${TAGN[g.tag]} 경험`,p:goalChance(id),run:()=>{S.route=route;S.goal=id;return moment(`${eul(g.n)} 목표로 정했어요.`,apply({mnt:1}))}}})};
 }
 
 // ===================== 한 시기 진행 =====================
@@ -1496,11 +1514,11 @@ function famRoom(){return `우리 가족 (${S&&S.fam?S.fam.length:4})`}
 function chatHTML(room,lines){if(S&&S.fam)lines=lines.filter(([w])=>!['엄마','아빠','할머니','동생'].includes(w)||S.fam.includes(w));if(S&&S.sys&&S.sys.length){lines=S.sys.map(t=>['시스템',t]).concat(lines);S.sys=[]}if(!lines.length)lines=[['시스템','조용한 단톡방']];return `<div class="chatroom"><div class="room">${esc(room)}</div>${lines.map(([w,t])=>w==='시스템'?`<div class="sysmsg">${esc(t)}</div>`:w==='나'?`<div class="msg me"><p>${esc(t)}</p></div>`:`<div class="msg"><div class="who" style="background:${WHO[w]||'#888'}">${esc(w.slice(0,2))}</div><div class="bub"><span>${esc(w)}</span><p>${esc(t)}</p></div></div>`).join('')}</div>`}
 
 // ===================== 시작 화면 =====================
-function dexBlock(name,order,got,nm){
-  const have=order.filter(id=>got.includes(id));
-  return `<details class="card col"><summary class="between" style="cursor:pointer;list-style:none"><span class="label">${name}</span><span class="tiny num">${have.length} / ${order.length} · 펼치기</span></summary>
-    <div class="col" style="margin-top:10px">${have.length?`<div class="chips">${have.map(id=>`<span>${nm(id)}</span>`).join('')}</div>`:'<span class="tiny">아직 모은 게 없어요.</span>'}
-    <div class="dex">${order.filter(id=>!got.includes(id)).map(()=>`<div class="lock"><b>미획득</b>???</div>`).join('')}</div></div></details>`;
+const PATH_DESC={med:'수능 최상위에 봉사 경험까지. 6년 뒤 국가고시가 기다려요.',kaist:'과학 경험이 쌓인 최상위권의 선택',snu:'수능 최상위. 학과는 고를 수 있어요.',law:'토론 경험 많은 최상위권의 법학 루트',police:'체력 · 멘탈 · 수능을 다 갖춘 경찰 간부의 길',army:'체력과 멘탈로 들어간 장교의 길',yk:'수능 최상위권. 학과를 골라요.',mid:'수능 상위권. 무난한 출발',nurse:'봉사 경험이 이끈 평생 면허의 길',cs:'코딩 경험이 이끈 개발자의 정석',crew:'매력과 인맥으로 하늘을 나는 길',inseoul:'서울 소재 대학 진학',local:'수도권 · 지방 대학 진학',retake:'한 번 더. 재수 학원 등록',artm:'미술 실기 합격',musicm:'보컬 · 합주 실기 합격',actm:'연기 실기 합격',pe:'체육 실기 합격',arts_f:'실기에서 떨어져 예체능 재수',idol:'오디션 · 월말평가 · 데뷔조를 모두 통과',gamer:'랭크 상위 0.1%에서 프로팀까지',youtuber:'알고리즘의 선택을 받은 10대',webtoon:'도전만화에서 정식 연재까지',pro:'드래프트 지명을 받은 고졸 프로',startup:'고등학생 때 월 매출 1천만 원',idol_f:'데뷔는 다음 기회에',gamer_f:'프로 문턱에서 멈춘 랭커',yt_f:'구독자 3천에서 멈춘 채널',webtoon_f:'연재 계약은 아직',pro_f:'드래프트 대신 대학 운동부',startup_f:'첫 사업을 접고 다시 도전',dev:'고등학생 때 대기업 공채 합격',chef:'조리기능사로 호텔 주방 입성',civil:'열아홉에 9급 합격',farm:'청년 창업 지원금으로 시작한 농장',dev_f:'작은 IT 회사에서 시작',chef_f:'동네 식당 주방 막내로 시작',civil_f:'공시생 생활 1년 더',farm_f:'부모님 농장에서 일을 배워요',burnout:'스트레스가 한계를 넘어 쉬어 가는 졸업'};
+function dexBlock(name,order,got,nm,ds){
+  const have=order.filter(id=>got.includes(id)).length;
+  return `<details class="card col"><summary class="between" style="cursor:pointer;list-style:none"><span class="label">${name}</span><span class="tiny num">${have} / ${order.length} · 펼치기</span></summary>
+    <div class="dex" style="margin-top:10px">${order.map(id=>got.includes(id)?`<div class="got"><strong>${esc(nm(id))}</strong><span>${esc(ds?ds(id):'')}</span></div>`:`<div class="lock"><strong>???</strong><span>아직 만나지 못했어요</span></div>`).join('')}</div></details>`;
 }
 function renderIntro(){
   dock(null);
@@ -1514,15 +1532,15 @@ function renderIntro(){
     <h1>한 번뿐인 인생,<br>스케줄부터 짜요</h1>
     <p>학원 보낼지 게임 시킬지는 내 마음. 학창 시절이 끝나면 첫 직장, 코인과 청약, AI 시대를 지나 <strong>35세의 연봉과 자산</strong>이 나와요.</p>
   </section>
-  ${saved&&saved.v===5&&(saved.phase==='home'||saved.phase==='adult')?`<div class="card between"><div><div class="label">이어하기</div><strong>${esc(saved.name)}</strong> <span class="muted">· ${saved.phase==='adult'?'어른 편':TURNS[saved.t].label}</span></div><button class="btn small" id="resume">이어서</button></div>`:''}
+  ${saved&&saved.v>=5&&(saved.phase==='home'||saved.phase==='adult')?`<div class="card between"><div><div class="label">이어하기</div><strong>${esc(saved.name)}</strong> <span class="muted">· ${saved.phase==='adult'?'어른 편':TURNS[saved.t].label}</span></div><button class="btn small" id="resume">이어서</button></div>`:''}
   <button class="btn" id="new">새 인생 시작하기</button>
-  ${dexBlock('35세 칭호 도감',TITLE_ORDER,tx,id=>TITLES[id].n)}
-  ${dexBlock('19세 진로 도감',PATH_ORDER,dx,id=>PATHS[id].n)}
-  ${dexBlock('35세 직업 도감',JOB_ORDER,ls.get(JKEY,[]),id=>JOBMAP[id][1])}
+  ${dexBlock('35세 칭호 도감',TITLE_ORDER,tx,id=>TITLES[id].n,id=>TITLES[id].d)}
+  ${dexBlock('19세 진로 도감',PATH_ORDER,dx,id=>PATHS[id].n,id=>PATH_DESC[id]||'')}
+  ${dexBlock('35세 직업 도감',JOB_ORDER,ls.get(JKEY,[]),id=>JOBMAP[id][1],id=>`${JOBMAP[id][2]} · 연봉 ${rng(JOBMAP[id][3],JOBMAP[id][4])}${(JOB_REAL[id]||'')?' · '+JOB_REAL[id].split('.')[0]:''}`)}
   ${rec.length?`<section class="card"><div class="label" style="margin-bottom:4px">내 최고 인생</div><div class="col" style="gap:0">${rec.map((r,i)=>`<div class="between" style="padding:8px 0;border-top:${i?'1px dashed var(--line)':'0'}"><span><span class="muted num">${i+1}</span> <strong>${esc(r.name)}</strong> · ${esc(r.title)}</span><span class="num tiny">${man(r.asset)}</span></div>`).join('')}</div></section>`:''}
   <p class="foot">게임 속 학교 · 회사 · 시장은 모두 가상이에요 · 기록은 이 기기에만 저장돼요</p>`;
   $('new').onclick=startCreate;
-  const r=$('resume');if(r)r.onclick=()=>{S=saved;S.phase==='adult'?renderAdult():renderHome()};
+  const r=$('resume');if(r)r.onclick=()=>safeResume(saved);
 }
 
 // ===================== 만들기 =====================
@@ -1561,9 +1579,9 @@ function renderCreate(){
 }
 function beginLife(){
   const ty=TYPES.find(x=>x.id===D.type);const tr=R();
-  S={v:5,tid:ty.id,fam:['엄마','아빠','할머니','동생'],sys:[],budgetMul:1,phase:'home',name:D.name,gender:D.gender,region:D.region,type:ty.name,st:{...ty.st},t:0,study:4,stress:20,money:0,skin:SKIN[D.skin||0],num:pick([7,9,10,11,23]),
+  S={v:SAVE_V,tid:ty.id,fam:['엄마','아빠','할머니','동생'],sys:[],budgetMul:1,phase:'home',name:D.name,gender:D.gender,region:D.region,type:ty.name,st:{...ty.st},t:0,study:4,stress:20,money:0,skin:SKIN[D.skin||0],num:pick([7,9,10,11,23]),
     trait:tr<.25?'조숙형':tr<.75?'보통':'대기만성형',tags:{},used:[],lastEv:null,hist:[],awards:[],awardsAll:[],moments:[],yfx:{},banjang:0,flags:{},
-    bffCand:pick(D.gender==='여'?GIRLS:BOYS),crushCand:pick(D.gender==='여'?BOYS:GIRLS),bff:null,dating:null,school:`${pick(['한빛','새솔','푸른','늘봄','은행나무','별빛','가람','미르'])}초등학교`};
+    sibG:R()<.5?'남':'여',bffCand:pick(D.gender==='여'?GIRLS:BOYS),crushCand:pick(D.gender==='여'?BOYS:GIRLS),bff:null,dating:null,school:`${pick(['한빛','새솔','푸른','늘봄','은행나무','별빛','가람','미르'])}초등학교`};
   prepTurn();save();
   openSheet(`<span class="label">가족 단톡방</span>
     ${chatHTML(famRoom(),[['엄마',`오늘 ${S.name} 입학식! 사진 올린다`],['아빠','벌써 초등학생이라니'],['할머니','우리 강아지 축하한다'],['동생','나도 학교 가고 싶다']])}
@@ -1933,14 +1951,14 @@ function jobOpt(j,{retry,earned,own,fit}={}){
     const own=JOB0[S.path19],keep=retry||(S.ad.jobId&&S.ad.jobId===own);
     if(keep){S.ad.happy-=4;return {t:`${j[1]} 도전은 실패했어요. 원래 하던 일로 돌아왔어요.`,fx:salTxt(S.ad.sal)}}
     const fb=univ()&&R()<.6?(R()<.5?'midco':'smallco'):pick(['smallco','cvs','logistics','rider','callcenter']);setJob(fb);S.ad.happy-=3;
-    return {t:`${j[1]} 도전은 실패했어요. 결국 ${JOBMAP[fb][1]}(으)로 시작했어요.`,fx:salTxt(S.ad.sal)}}};
+    return {t:`${j[1]} 도전은 실패했어요. 결국 ${ro(JOBMAP[fb][1])} 시작했어요.`,fx:salTxt(S.ad.sal)}}};
 }
 function jobLine(j,ok){
   const L={doctor:'전문의 자격을 땄어요. 레지던트 4년은 기억이 잘 안 나요.',lawyer:'변호사 배지를 달았어요. 엄마가 액자에 넣었어요.',peteacher:'모교에 체육 선생님으로 발령받았어요. 옛 담임 선생님이 교감이 됐어요.',
     trainer:'PT 회원 30명을 모았어요. 인스타 팔로워도 늘었어요.',corpteam:'실업팀에 입단했어요. 월급은 적지만 운동을 계속할 수 있어요.',national:'태극마크를 달았어요. 전국 뉴스에 이름이 나왔어요.',
     firefighter:'소방관 임용식에서 부모님이 우셨어요.',idol:'데뷔 3년 차, 첫 1위를 했어요.',youtuber:'채널을 열었어요. 구독자 수는 운에 달렸어요.',ilta:'수강생 10만 명. 학원가 전광판에 얼굴이 걸렸어요.',
     hair:'헤어디자이너가 됐어요. 단골손님이 생겼어요.',civil9:'주민센터 민원 창구에 앉았어요.',cvs:'편의점 야간 알바를 시작했어요. 폐기 도시락은 덤이에요.',rider:'오토바이를 할부로 샀어요. 비 오는 날 수입이 두 배예요.'};
-  return L[j[0]]||`${j[1]}(으)로 일을 시작했어요.`;
+  return L[j[0]]||`${ro(j[1])} 일을 시작했어요.`;
 }
 const LIC_BY_MAJOR={
  '의학':[['의사 국가고시',()=>.93,'의사면허']],'간호':[['간호사 국가고시',()=>.9,'간호사면허'],['교직 이수',()=>.4,'교원자격']],
@@ -2373,7 +2391,7 @@ function careerOpts(){
   if(A.sal>0&&!A.flags.fire)gen.push({l:'지금 자리에서 버틴다',s:'연차 · 호봉',run:()=>{A.sal=Math.round(A.sal*1.12);A.happy+=2;return {t:'연차가 쌓였어요. 연봉이 조금 올랐어요.',fx:'연봉 12%↑'}}});
   if(['corp','it','fin','civil','air'].includes(jg()))gen.push({l:'조용한 퇴사',s:'시킨 것만 정시에',run:()=>{A.happy+=10;A.health+=5;A.flags.quiet=1;return {t:'6시 1분엔 이미 지하철이에요. 저녁이 생겼어요.',fx:'행복↑'}}});
   if(!A.jobId||['corp','gig','none','creative'].includes(jg()))gen.push({l:'N잡러가 된다',s:'유튜브 · 스마트스토어 · 강의',run:()=>{const r=R()+(st.charm+st.luck)/400;A.flags.njob=1;A.job='N잡러';A.jobId=null;if(r>.8){A.sal=Math.round(A.sal*1.6+2000);return {t:'부업 수입이 본업을 넘었어요.',fx:'수입 60%↑'}}A.sal=Math.round(A.sal*.7+800);A.happy+=5;return {t:'수입은 줄었지만 출근이 없어요.',fx:'수입↓ 행복↑'}}});
-  if(!A.jobId&&!A.flags.fire)gen.push({l:'다시 취업 준비',s:'',run:()=>{const el=eligibleJobs().filter(j=>j[2]!=='누구나');const j=el.length?pick(el):JOBMAP.smallco;if(R()<.55){setJob(j[0]);return {t:`${j[1]}(으)로 다시 일을 시작했어요.`,fx:salTxt(A.sal)}}setJob('smallco');return {t:'원하던 곳은 떨어지고 중소기업에 들어갔어요.',fx:salTxt(A.sal)}}});
+  if(!A.jobId&&!A.flags.fire)gen.push({l:'다시 취업 준비',s:'',run:()=>{const el=eligibleJobs().filter(j=>j[2]!=='누구나');const j=el.length?pick(el):JOBMAP.smallco;if(R()<.55){setJob(j[0]);return {t:`${ro(j[1])} 다시 일을 시작했어요.`,fx:salTxt(A.sal)}}setJob('smallco');return {t:'원하던 곳은 떨어지고 중소기업에 들어갔어요.',fx:salTxt(A.sal)}}});
   if(A.flags.lotto1&&!A.flags.lottoDone)gen.push({l:'로또 당첨금으로 플렉스',s:'인생 한 번이잖아',run:()=>{A.flags.lottoDone=1;if(R()<.55){A.asset=Math.round(A.asset*.08);A.flags.lottoBroke=1;A.happy-=15;return {t:'슈퍼카, 명품, 지인 대출… 3년 만에 통장이 바닥났어요. 친척들 연락도 끊겼어요.',fx:'자산 92% 증발'}}A.flags.fire=1;A.job='은퇴 (파이어족)';A.jobId='fire_ret';A.sal=Math.round(A.asset*.03);A.happy+=12;return {t:'건물 하나 사고 조용히 은퇴했어요. 아무에게도 말하지 않았어요.',fx:'자유'}}});
   if(A.asset-A.debt>=80000&&!A.flags.fire&&!A.flags.lotto1)gen.push({l:'은퇴한다 (파이어)',s:'순자산 8억 이상',run:()=>{A.flags.fire=1;A.job='은퇴 (파이어족)';A.jobId='fire_ret';A.sal=Math.round(A.asset*.035);A.happy+=15;return {t:'35세에 일을 졸업했어요. 배당으로 살아요.',fx:'자유'}}});
   return [...base,...gen];
@@ -2396,10 +2414,10 @@ const BOOMS=[
  {id:'cookiefr',need:()=>S.flags.dzkSell,art:['cafe',()=>PROP.cookie(250,186),0],title:'쿠키 사 먹던 동창',desc:()=>'중학교 때 내 쿠키를 사 먹던 동창이 디저트 프랜차이즈 본부장이 됐어요. 가맹점을 내 보래요.',opts:[
    {l:'가맹점을 낸다',s:'가맹비 5천만 원',p:.5,run:()=>{S.ad.asset-=5000;if(R()<.5+S.st.luck/400){S.ad.asset+=22000;S.ad.flags.dzk=1;return {t:'그때 그 맛이라며 줄이 섰어요. 2년 만에 본전을 뽑고 남았어요.',fx:'자산 +2억 2천만'}}S.ad.happy-=10;return {t:'본사가 갑질 논란에 휘말리면서 매출이 반토막 났어요.',fx:'자산 -5천만'}}},
    {l:'거절한다',s:'',run:()=>({t:'그 프랜차이즈는 지금 전국에 300개예요.',fx:''})}]},
- {id:'bffco',need:()=>!!S.bff,art:['office',()=>PROP.laptop(70,186)+PROP.chartup(250,186),0],title:()=>`${S.bff}의 전화`,desc:()=>`단짝 ${S.bff}가 창업을 했대요. 공동창업자로 와 달래요.`,opts:[
-   {l:'같이 한다',s:'연봉은 절반, 지분은 20%',p:.3,run:()=>{const A=S.ad;A.sal=Math.round(A.sal*.5);A.job=`${S.bff}네 회사 공동창업자`;A.jobId=null;A.outfit='hoodie';if(R()<.3+S.st.luck/400){A.asset+=60000;A.flags.exit=1;return {t:`회사가 인수됐어요. ${S.bff}와 부둥켜안고 울었어요.`,fx:'자산 +6억'}}A.happy-=6;return {t:`3년 만에 회사가 문을 닫았어요. 그래도 ${S.bff}하고는 여전히 친구예요.`,fx:'연봉 반토막'}}},
-   {l:'응원만 한다',s:'',run:()=>({t:`${S.bff}에게 화분을 보냈어요.`,fx:''})}]},
- {id:'reunion',need:()=>!S.ad.partner&&(S.dating||S.exDating),art:['street',()=>PROP.heart(250,60,1.6),6],title:'동창회',desc:()=>`동창회에서 ${S.exDating||S.dating||S.crushCand}를 다시 만났어요. 그대로예요.`,opts:[
+ {id:'bffco',need:()=>!!S.bff,art:['office',()=>PROP.laptop(70,186)+PROP.chartup(250,186),0],title:()=>`${nm(S.bff)}의 전화`,desc:()=>`단짝 ${nm(S.bff)}가 창업을 했대요. 공동창업자로 와 달래요.`,opts:[
+   {l:'같이 한다',s:'연봉은 절반, 지분은 20%',p:.3,run:()=>{const A=S.ad;A.sal=Math.round(A.sal*.5);A.job=`${nm(S.bff)}네 회사 공동창업자`;A.jobId=null;A.outfit='hoodie';if(R()<.3+S.st.luck/400){A.asset+=60000;A.flags.exit=1;return {t:`회사가 인수됐어요. ${nm(S.bff)}와 부둥켜안고 울었어요.`,fx:'자산 +6억'}}A.happy-=6;return {t:`3년 만에 회사가 문을 닫았어요. 그래도 ${nm(S.bff)}하고는 여전히 친구예요.`,fx:'연봉 반토막'}}},
+   {l:'응원만 한다',s:'',run:()=>({t:`${nm(S.bff)}에게 화분을 보냈어요.`,fx:''})}]},
+ {id:'reunion',need:()=>!S.ad.partner&&(S.dating||S.exDating),art:['street',()=>PROP.heart(250,60,1.6),6],title:'동창회',desc:()=>`동창회에서 ${nm(S.exDating||S.dating||S.crushCand)}를 다시 만났어요. 그대로예요.`,opts:[
    {l:'연락처를 묻는다',s:'매력 · 운',p:.5,run:()=>R()<(S.st.charm+S.st.luck)/200?(S.ad.partner='dating',S.ad.happy+=12,{t:'다음 주에 둘이 밥을 먹었어요. 그다음 주에도요.',fx:'연애 시작'}):{t:'결혼반지를 끼고 있었어요.',fx:''}},
    {l:'추억으로 남긴다',s:'',run:()=>({t:'집에 오는 길에 그 시절 노래를 들었어요.',fx:''})}]},
  {id:'bossvictim',need:()=>S.flags.guilt,art:['office',()=>PROP.boss(250,186),4],title:'새로 온 팀장',desc:()=>'새로 온 팀장 얼굴이 낯익어요. 중학교 복도에서 맞고 있던, 내가 모른 척했던 그 아이예요.',opts:[
@@ -2425,7 +2443,9 @@ const BOOMS=[
  {id:'banjangnet',need:()=>S.banjang>=2,art:['street',()=>PROP.speech(236,52,'반장!'),0],title:'반장 출신의 인맥',desc:()=>'반장 두 번 한 덕에 동창들이 아직 나를 "반장"이라고 불러요. 동창회 단톡방이 300명이에요.',opts:[
    {l:'인맥을 영업에 쓴다',s:'인맥 판정',p:.5,run:()=>R()<S.st.soc/100?(S.ad.sal=Math.round(S.ad.sal*1.25+500),{t:'동창들이 고객이 되어 줬어요. 실적 1등을 했어요.',fx:'연봉 25%↑'}):{t:'몇 명이 단톡방을 나갔어요.',fx:''}},
    {l:'그냥 반장 노릇만 한다',s:'',run:()=>{S.ad.happy+=4;return {t:'경조사 때마다 화환을 돌려요.',fx:''}}}]}];
-function pickBoom(){const done=S.ad.booms||[];const pool=BOOMS.filter(b=>!done.includes(b.id)&&b.need());return pool.length?pick(pool):null}
+const BKEY='krsurvive:boomseen',BOOM_W={land:.5,karma:.7,reunion:1.2};
+function pickBoom(){const done=S.ad.booms||[];const pool=BOOMS.filter(b=>!done.includes(b.id)&&b.need());if(!pool.length)return null;const seen=ls.get(BKEY,{});const w=pool.map(b=>(BOOM_W[b.id]||1)/(1+(seen[b.id]||0)*.8));let r=R()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=w[i];if(r<=0)return pool[i]}return pool[pool.length-1]}
+function markBoom(id){const seen=ls.get(BKEY,{});seen[id]=(seen[id]||0)+1;ls.set(BKEY,seen)}
 
 function realityLine(key){
   const A=S.ad,mon=Math.round(A.sal*.82/12);
@@ -2459,7 +2479,7 @@ function crisisDef(){
   const A=S.ad,friend=S.bff||'오랜 친구';
   return {title:'마음이 바닥났어요',ages:'번아웃',desc:'몇 주째 잠을 못 자요. 출근길 지하철에서 숨이 막히고, 아무것도 하고 싶지 않아요.',opts:[
     {l:'정신건강의학과에 가본다',s:'용기가 필요해요',run:()=>{A.happy+=28;A.health+=5;A.asset-=150;A.flags.therapy=1;return {t:'상담과 치료를 시작했어요. 생각보다 많은 사람이 다니고 있었어요.',fx:'행복도 크게 회복'}}},
-    {l:`${friend}에게 연락한다`,s:'',run:()=>{A.happy+=18;return {t:`${friend}가 새벽 2시에 달려와 줬어요. 둘이서 한참 울었어요.`,fx:'행복도 회복'}}},
+    {l:`${nm(friend)}에게 연락한다`,s:'',run:()=>{A.happy+=18;return {t:`${nm(friend)}가 새벽 2시에 달려와 줬어요. 둘이서 한참 울었어요.`,fx:'행복도 회복'}}},
     {l:'그냥 버틴다',s:'남들도 다 이렇게 사는 거겠지',run:()=>{A.happy+=4;A.health-=18;A.sal=Math.round(A.sal*.5);A.flags.collapse=1;A.job='휴직 중';return {t:'출근길에 공황 발작으로 쓰러져 응급실에 실려 갔어요. 회사에 휴직계를 냈어요.',fx:'건강 크게 하락 · 연봉 반토막'}}}]};
 }
 function afterChapter(key){
@@ -2471,7 +2491,7 @@ function afterChapter(key){
   if(['money','love'].includes(key)&&!A.flags.parentHelp&&R()<(REG().parent||0))queue.push('parent');
   const next=()=>{
     const q=queue.shift();
-    if(q==='boom'){const b=pickBoom();if(!b){next();return}A.booms=(A.booms||[]).concat(b.id);save();
+    if(q==='boom'){const b=pickBoom();if(!b){next();return}A.booms=(A.booms||[]).concat(b.id);markBoom(b.id);save();
       showChoice({title:b.title,desc:b.desc,ages:'부메랑 · 학창 시절이 돌아왔어요',opts:b.opts,art:artSVG(b.art[0],b.art[1](),curAvatar({mood:b.art[2]}),'c'),after:r=>{A.happy=clamp(A.happy,0,100);adNote('부메랑 · '+r.t);save();
         openSheet(`<span class="label">부메랑 · ${esc(typeof b.title==='function'?b.title():b.title)}</span><div class="result">${esc(r.t)}${r.fx?`<span class="fx">${esc(r.fx)}</span>`:''}</div><p class="tiny" style="margin:0">학창 시절의 선택이 ${A.ch*4+16}살의 나에게 돌아왔어요.</p><button class="btn" id="ok">다음</button>`);$('ok').onclick=()=>{closeSheet();next()}}},null,false);return}
     if(q==='parent'){const rg=REG(),amt=rg.parentAmt;A.flags.parentHelp=1;A.asset+=amt;A.happy+=4;const t=rg.id==='gangnam'?`아빠가 조용히 통장을 하나 건넸어요. "결혼할 때 쓰라고 모아 둔 거다." ${man(amt)}이에요.`:rg.id==='newtown'?`부모님 아파트값이 올라서 대출을 받아 ${man(amt)}을 보태 주셨어요.`:`부모님이 평생 모은 적금을 깨서 ${man(amt)}을 보내 주셨어요.`;adNote('부모님 · '+t);save();
@@ -2532,7 +2552,7 @@ function renderAdult(){
   $('go').onclick=()=>showChoice({...ch,art:ch.key==='career'&&(A.jobId||A.job)?jobScene(1):artSVG(AD_ART[ch.key][0],AD_ART[ch.key][1](),curAvatar({mood:AD_ART[ch.key][2]}),'c'),after:r=>{
     const rg=REG(),localJob=['farm','civil'].includes(jg())||['publicco','teacher','peteacher','kinder','socialworker','cop','firefighter'].includes(A.jobId);let rgNote='';
     if(ch.key!=='love'&&A.jobId&&rg.rent&&!A.house&&!localJob){A.asset-=rg.rent;rgNote=`${rg.name}에서 올라와 서울 월세로 4년간 ${man(rg.rent)}이 나갔어요.`}
-    A.happy+=(rg.ahappy||0);A.health+=(rg.ahealth||0);if(rg.ahealth&&A.jobId&&ch.key==='firstjob')rgNote='신도시에서 서울까지 왕복 3시간. 지하철에서 인생의 1/8을 보내요.';if(ch.key==='career'&&rg.id==='gangnam'){A.happy-=4;rgNote='동창 단톡방에 의사 · 변호사 · 건물주 소식만 올라와요. 내가 작아져요.'}
+    A.happy+=(rg.ahappy||0);A.health+=(rg.ahealth||0);if(rg.ahealth&&A.jobId&&ch.key==='firstjob')rgNote='신도시에서 서울까지 왕복 3시간. 지하철에서 인생의 1/8을 보내요.';if(ch.key==='career'&&rg.id==='gangnam'){A.happy-=2;rgNote='동창 단톡방에 의사 · 변호사 · 건물주 소식만 올라와요. 내가 작아져요.'}
     if(rgNote)adNote('출신 · '+rgNote);
     A.happy=clamp(A.happy-3-(A.sal>=9000?3:0),0,100);A.health=clamp(A.health-3,0,100);adNote(`${ages} · ${r.t}`);const rl=realityLine(ch.key);if(rl)adNote('현실 · '+rl);A.ch++;save();
     openSheet(`<span class="label">${ages} · ${ch.title}</span><div class="scene">${adResultArt(ch.key)}</div><div class="result">${esc(r.t)}<span class="fx">${esc(r.fx||'')}</span></div>
@@ -2590,8 +2610,6 @@ function finalTitle(A){
   if(f.njob)all.push('njob');
   if(f.quiet)all.push('quietquit');
   if(f.specOk&&!f.biz)all.push('specok');
-  if(A.house==='부모님 집')all.push('kangaroo');
-  if(f.specFail&&!f.bizFail)all.push('specfail');
   if(A.health>=85)all.push('slowage');
   if(f.godsaeng)all.push('godsaeng');
   if(happy>=85&&A.sal<5000)all.push('jangthink');
@@ -2601,6 +2619,8 @@ function finalTitle(A){
   if((A.booms||[]).length>=2)all.push('boomerang');
   if(f.solo)all.push('solo');
   if(f.care)all.push('caregiver');
+  if(f.specFail&&!f.bizFail)all.push('specfail');
+  if(A.house==='부모님 집'&&A.partner!=='married')all.push('kangaroo');
   if(!all.length)all.push('average');
   return all;
 }
@@ -2690,6 +2710,7 @@ function showFinal(){
       <p class="tiny" style="margin:6px 0 0">타고난 성장 속도: ${S.trait} · 인생 점수 ${score.toLocaleString()}</p></div>
     ${chatHTML(famRoom(),[['엄마',A.happy>=60?'우리 애가 행복하면 됐다':'힘들면 언제든 집에 와'],['아빠',net>=50000?'노후는 너만 믿는다':'아빠 노후는 아빠가 알아서 할게'],['동생',`${sib()} 칭호 '${TITLES[main].n}' 실화냐 ㅋㅋ`]])}
     <textarea class="copy" id="ct" readonly aria-label="공유할 결과">${esc(text)}</textarea>
+    <button class="btn" id="card">결과 이미지 저장 · 공유</button><img id="cardpv" hidden alt="결과 카드 미리보기" style="width:100%;border-radius:14px;border:1px solid var(--line)">
     <div class="row"><button class="btn small" id="cp">결과 복사</button><span class="tiny" id="cpm"></span></div>
   </section>
   <button class="btn" id="again">다시 태어나기</button>
@@ -2698,16 +2719,47 @@ function showFinal(){
   countUp();
   $('cp').onclick=()=>{const ta=$('ct');const fb=()=>{ta.select();$('cpm').textContent='선택된 글을 길게 눌러 복사해 주세요'};
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(()=>$('cpm').textContent='복사했어요').catch(fb);else fb()};
+  $('card').onclick=()=>{const bgs=['#DDEFF8','#F3EAD6','#D9DEF0','#F7D9C0'];const cuts=[[0,h[1]?h[1].mood:0,'kid','초등 · 10세'],[1,h[3]?h[3].mood:1,'uniform','중2 · 15세'],[2,h[7]?h[7].mood:2,h[7]?h[7].outfit:'uniform','고3 · 19세'],[3,moodOf(100-A.happy),A.outfit,'35세 · 지금']].map(([st,m,of,cap],i)=>({svg:avatarSVG({g:S.gender,stage:st,mood:m,outfit:of,look:lookNow(),skin:S.skin,num:S.num,bg:bgs[i]}),cap}));
+    saveShareCard({title:TITLES[main].n,name:S.name,job:A.job||'무직',region:REG().name+' 출신',cuts,salTop:A.sal?salTop:'측정 불가',sal:A.sal?man(A.sal):'0원',netTop:net>0?assetTop:'하위권',net:man(net)},$('card'),$('cpm'))};
   $('again').onclick=startCreate;$('home').onclick=renderIntro;
 }
 
 function countUp(){const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;document.querySelectorAll('[data-count]').forEach(el=>{const t=+el.dataset.count;if(reduce||t>=100)return;const fin=el.textContent;const st=performance.now(),dur=1100;const f=now=>{const k=Math.min(1,(now-st)/dur),e=1-Math.pow(1-k,3);const cur=100-(100-t)*e;el.textContent=fmtTop(cur);if(k<1)requestAnimationFrame(f);else el.textContent=fin};requestAnimationFrame(f)})}
+// ----- 결과 카드 이미지 (1080×1350) -----
+function shareCardSVG(o){
+  const W=1080,H=1350,F='Apple SD Gothic Neo,Malgun Gothic,Noto Sans KR,Noto Sans CJK KR,sans-serif';
+  const ex=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const nest=(svg,x,y,w,h)=>svg.replace(/^<svg /,`<svg x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice" `).replace(/class="[^"]*"/g,'');
+  const cuts=o.cuts.map((c,i)=>{const x=84+(i%2)*462,y=300+Math.floor(i/2)*400;return `<rect x="${x-6}" y="${y-6}" width="${450}" height="${370}" rx="26" fill="#2A2A30"/><clipPath id="cc${i}"><rect x="${x}" y="${y}" width="438" height="320" rx="18"/></clipPath><g clip-path="url(#cc${i})">${nest(c.svg,x,y,438,320)}</g><text x="${x+219}" y="${y+352}" text-anchor="middle" font-family="${F}" font-size="26" font-weight="700" fill="#E8E8EA">${ex(c.cap)}</text>`}).join('');
+  const box=(x,y,w,label,val,sub,col)=>`<rect x="${x}" y="${y}" width="${w}" height="150" rx="24" fill="${col}"/><text x="${x+28}" y="${y+44}" font-family="${F}" font-size="24" font-weight="700" fill="#FFFFFFB0">${ex(label)}</text><text x="${x+28}" y="${y+100}" font-family="${F}" font-size="50" font-weight="800" fill="#FFF">${ex(val)}</text><text x="${x+28}" y="${y+134}" font-family="${F}" font-size="24" fill="#FFFFFFD0">${ex(sub)}</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <rect width="${W}" height="${H}" fill="#F2EFE6"/><rect x="40" y="40" width="${W-80}" height="${H-80}" rx="44" fill="#FFFDF8" stroke="#DDD6C6" stroke-width="3"/>
+  <text x="84" y="128" font-family="${F}" font-size="30" font-weight="700" fill="#646A74">한국에서 살아남기 · 35세 성적표</text>
+  <text x="84" y="206" font-family="${F}" font-size="64" font-weight="900" fill="#1F2430">${ex(o.title)}</text>
+  <text x="84" y="258" font-family="${F}" font-size="30" fill="#3B4150">${ex(o.name)} · ${ex(o.job)}</text>
+  <g transform="rotate(-6 ${W-170} 160)"><rect x="${W-300}" y="118" width="230" height="78" rx="14" fill="none" stroke="#D0432E" stroke-width="5"/><text x="${W-185}" y="171" text-anchor="middle" font-family="${F}" font-size="34" font-weight="900" fill="#D0432E">${ex(o.region)}</text></g>
+  ${cuts}
+  ${box(84,1100,450,'연봉 · 대한민국 근로자',o.salTop,o.sal,'#2B2F4F')}${box(546,1100,450,'순자산 · 대한민국 가구',o.netTop,o.net,'#4A2B3E')}
+  <text x="${W/2}" y="1300" text-anchor="middle" font-family="${F}" font-size="26" fill="#646A74">taehuicho00.github.io/korea-survival · 나는 몇 % 인생일까?</text></svg>`;
+}
+function saveShareCard(o,btn,msg){
+  const svg=shareCardSVG(o);const img=new Image();btn.disabled=true;msg.textContent='이미지를 만드는 중…';
+  img.onload=()=>{try{const c=document.createElement('canvas');c.width=1080;c.height=1350;const g=c.getContext('2d');g.drawImage(img,0,0);
+    c.toBlob(async b=>{btn.disabled=false;if(!b){msg.textContent='이미지를 만들지 못했어요';return}
+      const file=new File([b],'한국에서살아남기-결과.png',{type:'image/png'});
+      try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'한국에서 살아남기',text:'내 35세 성적표'});msg.textContent='공유했어요';return}}catch(e){if(e&&e.name==='AbortError'){msg.textContent='';return}}
+      const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);msg.textContent='이미지를 저장했어요';
+      const pv=$('cardpv');if(pv){pv.hidden=false;pv.src=c.toDataURL('image/png')}},'image/png')}catch(e){btn.disabled=false;msg.textContent='이 브라우저에서는 이미지 저장이 안 돼요'}};
+  img.onerror=()=>{btn.disabled=false;msg.textContent='이미지를 만들지 못했어요'};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
 // ===================== 부팅 =====================
 $('sheet').addEventListener('click',e=>{if(e.target.id==='sheet'&&!$('sheetCard').querySelector('#ok,#go'))closeSheet()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('sheet').hidden&&!$('sheetCard').querySelector('#ok,#go'))closeSheet()});
 function start(data){
   const s=(data&&data.S)||null;
-  if(s&&s.v===5&&s.phase==='home'){S=s;renderHome()}else if(s&&s.v===5&&s.phase==='adult'){S=s;renderAdult()}else renderIntro();
+  if(s&&s.v>=5&&(s.phase==='home'||s.phase==='adult'))safeResume(s);else renderIntro();
 }
 window.claude?.hot?.snapshot?.(()=>({S}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
