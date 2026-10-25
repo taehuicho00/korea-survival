@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Surviving Korea</title>
-<meta name="description" content="From first-grade orientation to your bank balance at 35. 40 paths, 102 jobs. A Korean life-sim web game.">
+<meta name="description" content="From first-grade orientation to your bank balance at 35. 40 paths, 150 jobs. A Korean life-sim web game.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Surviving Korea">
 <meta property="og:description" content="From age 8 to 35 in Korea. Where does your salary rank in the whole country?">
@@ -1530,8 +1530,43 @@ const gaugeCls=v=>v>=75?'hi':v>=50?'mid':'';
 const tagChips=()=>{const t=Object.entries(S.tags).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);return t.length?`<div class="chips">${t.map(([k,v])=>`<span>${TAGN[k]} ${v}</span>`).join('')}</div>`:"<span class=\"tiny\">No experience yet.</span>"};
 const WHO={"Mom":'#E0607E',"Dad":'#3E7CC9',"Grandma":'#8C6BB0',"Little bro":'#2FA37A',"Me":'#E59A2B',"Bestie":'#E59A2B',"Auntie":'#C9773B',"Uncle":'#5A6B7E',"Cousin":'#7A8B3E'};
 function famRoom(){return `Family (${S&&S.fam?S.fam.length:4})`}
+// ===== 친척 · 지인 반응 (가족 단톡에 랜덤 4~5줄) =====
+Object.assign(WHO,{"Aunt Mi":'#B5527A',"Uncle Joon":'#4E6E9E',"Aunt Jin":'#D98A5C',"Uncle Ho":'#6B7F4A',"Uncle Min":'#3F8C8C',"Grandpa":'#6B5A8C',"Grandpa's Pal":'#8C7A5A',"Mom's Friend":'#C96FA0'});
+const WSH={"Uncle Joon":"Uncle Joon","Aunt Jin":"Aunt Jin","Uncle Ho":"Uncle Ho","Uncle Min":"Uncle Min","Grandpa":"Grandpa","Grandpa's Pal":"Grandpa's Pal","Mom's Friend":"Mom's Friend"};
+const wl=w=>WSH[w]||w.slice(0,2);
+const KIN={
+ kid:[["Aunt Mi","Aww, look how big our ○○ got"],["Grandpa","Grandpa sent you cash. Don't give it to Mom, it's yours"],["Aunt Jin","Want me to buy you a workbook or a toy?"],["Uncle Min","Back in my day I was always #1"],["Uncle Joon","You can't cram everything the night before"],["Mom's Friend","My Jihoon already knows his times tables~"],["Cousin","just hit level 50 btw"],["Grandpa's Pal","So this is your grandkid ○○?"],["Uncle Ho","What belt are you in taekwondo?"]],
+ teen:[["Aunt Mi","Studying hard? What's your class rank?"],["Grandpa","Don't wreck yourself. College isn't everything"],["Aunt Jin","In my day we got tteokbokki after night study hall"],["Uncle Min","I'm bringing you lucky taffy on Suneung day"],["Mom's Friend","My kid goes to a Daechi-dong cram school, you know"],["Uncle Joon","I know a professor, just saying"],["Cousin","I went to that cram school last year. mid"],["Grandpa's Pal","Word is you're crushing it at school"],["Uncle Ho","Get off your phone"]],
+ adult:[["Aunt Mi","So when are you getting married?"],["Grandpa","You eating properly?"],["Aunt Jin","I'm on ○○'s side, always"],["Uncle Min","Want a hot stock tip from your uncle?"],["Uncle Joon","Kids these days have no grit"],["Mom's Friend","My son just got into a big corp~"],["Cousin","Let's both dodge the holidays this year"],["Grandpa's Pal","Your grandkid's turned out quite the grown-up"],["Uncle Ho","Want me to find you a cheap car?"]],
+ job:[["Aunt Mi","What's your salary? Just curious"],["Grandpa","Wherever you work, people come first"],["Aunt Jin","Scout good food near your office. I'm visiting"],["Uncle Min","Good benefits there?"],["Uncle Joon","A junior from my old company works there"],["Mom's Friend","Omg ○○ works there? Get my kid in too"],["Grandpa's Pal","He's bragged to the whole neighborhood"],["Uncle Ho","First paycheck? You owe me a bottle of soju"]],
+ nojob:[["Aunt Mi","So what are you up to these days?"],["Grandpa","Take your time. Some flowers bloom late"],["Aunt Jin","There's a part-time gig at my company"],["Uncle Min","I know a business owner. Want an intro?"],["Mom's Friend","My kid took a year off, then got into a state company"],["Uncle Joon","Lower your standards a little"]],
+ single:[["Aunt Mi","I've got someone nice to set you up with"],["Aunt Jin","There's a cutie at my company. Send a pic?"],["Grandpa","When do I get a great-grandkid?"],["Mom's Friend","My daughter has a sweet friend, just saying"],["Uncle Min","Single life is the best. Look at me"]],
+ married:[["Aunt Mi","So when's the baby?"],["Grandpa","Treat your spouse well. That's what lasts"],["Aunt Jin","Enjoy the honeymoon phase while it lasts"],["Uncle Joon","Bought a place yet? Loan?"],["Mom's Friend","Omg you got married! Congrats"],["Uncle Ho","Visit the in-laws first on the holidays"]],
+ rich:[["Aunt Mi","So things are a bit tight for me lately…"],["Uncle Min","I've got a business idea. Wanna invest?"],["Uncle Joon","Watch your taxes. I know a tax accountant"],["Grandpa's Pal","Everyone's jealous of how far my grandkid's come"],["Cousin","bro · sis buy me dinner"]],
+ sad:[["Grandpa","When it's hard, come to Grandpa"],["Aunt Jin","I'll pack you some side dishes"],["Aunt Mi","It's okay. This too shall pass"],["Uncle Min","Been there. Just hang in"],["Grandpa's Pal","Your grandkid will pull through"],["Uncle Ho","Call anytime"],["Mom's Friend","Heard from your mom. Hang in there"]]};
+const CORE_FAM=["Mom","Dad","Grandma","Little bro","Me","Bestie"];
+function kinPool(lines){
+  const txt=lines.map(l=>l[1]).join(' ');
+  if(/kay|ang in|cry|uneral|orry|orri|ospital|hrysanth|left the chat|old on|hurt|ough/.test(txt))return KIN.sad;
+  const A=S&&S.ad;
+  if(!A){const a=T()?T().age:10;return a>=14?KIN.teen:KIN.kid}
+  let p=KIN.adult.concat(A.jobId&&A.sal>0?KIN.job:KIN.nojob);
+  if(A.partner==='married')p=p.concat(KIN.married);else if((A.ch||0)>=2)p=p.concat(KIN.single);
+  if((A.asset||0)>=30000)p=p.concat(KIN.rich);
+  return p;
+}
+function withKin(lines){
+  if(!S||!lines.length)return lines;
+  const target=R()<.5?4:5;
+  let core=lines.slice();const kinN=Math.max(R()<.5?1:2,target-core.length),room=Math.max(1,target-kinN);
+  if(core.length>room){const keep=new Set([0,...shuffle(core.map((_,i)=>i).slice(1)).slice(0,room-1)]);core=core.filter((_,i)=>keep.has(i))}
+  const used=new Set(core.map(l=>l[0]));
+  const add=shuffle(kinPool(core)).filter(([w])=>!used.has(w)&&(used.add(w),true)).slice(0,target-core.length).map(([w,t])=>[w,t.split('○○').join(S.name)]);
+  for(const k of add){const i=1+Math.floor(R()*core.length);core.splice(i,0,k)}
+  return core;
+}
 const dw=w=>w==="Little bro"&&S&&S.sibG==="Female"?"Little sis":w;
-function chatHTML(room,lines){if(S&&S.fam)lines=lines.filter(([w])=>!["Mom","Dad","Grandma","Little bro"].includes(w)||S.fam.includes(w));if(S&&S.sys&&S.sys.length){lines=S.sys.map(t=>["System",t]).concat(lines);S.sys=[]}if(!lines.length)lines=[["System","Quiet group chat"]];return `<div class="chatroom"><div class="room">${esc(room)}</div>${lines.map(([w,t])=>w==="System"?`<div class="sysmsg">${esc(t)}</div>`:w==="Me"?`<div class="msg me"><p>${esc(t)}</p></div>`:`<div class="msg"><div class="who" style="background:${WHO[w]||'#888'}">${esc(dw(w).slice(0,1))}</div><div class="bub"><span>${esc(dw(w))}</span><p>${esc(t)}</p></div></div>`).join('')}</div>`}
+function chatHTML(room,lines){if(S&&S.fam)lines=lines.filter(([w])=>!["Mom","Dad","Grandma","Little bro"].includes(w)||S.fam.includes(w));lines=withKin(lines);if(S&&S.sys&&S.sys.length){lines=S.sys.map(t=>["System",t]).concat(lines);S.sys=[]}if(!lines.length)lines=[["System","Quiet group chat"]];return `<div class="chatroom"><div class="room">${esc(room)}</div>${lines.map(([w,t])=>w==="System"?`<div class="sysmsg">${esc(t)}</div>`:w==="Me"?`<div class="msg me"><p>${esc(t)}</p></div>`:`<div class="msg"><div class="who" style="background:${WHO[w]||'#888'}">${esc(dw(w).slice(0,1))}</div><div class="bub"><span>${esc(dw(w))}</span><p>${esc(t)}</p></div></div>`).join('')}</div>`}
 
 // ===================== 시작 화면 =====================
 const PATH_DESC={med:"Top Suneung plus volunteer exp. Med boards in 6 years.",kaist:"Top-tier pick with science exp",snu:"Top Suneung. Pick any major.",law:"Top-tier law route for debaters",police:"Stamina, grit and Suneung: police officer track",army:"Officer track on stamina and grit",yk:"Top Suneung. Pick your major.",mid:"High Suneung. Solid start.",nurse:"Volunteer exp to a lifetime license",cs:"The classic dev path via coding exp",crew:"Charm and network take you to the skies",inseoul:"College in Seoul",local:"College near Seoul or regional",retake:"One more try: Suneung retake school",artm:"Passed art audition",musicm:"Passed vocal · band audition",actm:"Passed acting audition",pe:"Passed sports test",arts_f:"Failed the audition, retaking for arts",idol:"Cleared auditions, monthly evals and the debut team",gamer:"Top 0.1% ranked to pro team",youtuber:"A teen blessed by the algorithm",webtoon:"Amateur webtoon to official series",pro:"Drafted pro straight out of high school",startup:"₩10M a month in sales in high school",idol_f:"Debut next time, maybe",gamer_f:"Ranked player stuck at the pro gate",yt_f:"Channel stalled at 3K subs",webtoon_f:"No series deal yet",pro_f:"College team instead of the draft",startup_f:"First business folded, trying again",dev:"Hired by a big corp out of high school",chef:"Certified cook, now in a hotel kitchen",civil:"Passed Grade-9 civil service at 19",farm:"A farm started on a youth startup grant",dev_f:"Starting at a small IT company",chef_f:"Starting as the kitchen rookie at a local diner",civil_f:"One more year of civil service exam prep",farm_f:"Learning the ropes on your parents' farm",burnout:"Stress overload: graduating to take a break"};
@@ -1950,6 +1985,228 @@ const JOBS=[
  ['ceo',"AI startup CEO","IT · Research",3000,40000,'suit',.3,()=>pth('startup')||(pth('startup_f')&&tg('code',4)),()=>pth('startup')?.85:.3,1],
  ['owner',"Shop owner","Self-employed",2000,15000,'chef',.1,()=>false,()=>1,1],
  ['fire_ret',"Retired (FIRE)","Self-employed",0,0,'suit',0,()=>false,()=>1]];
+// ===== 신규 직업 50개 =====
+// [id,이름,분야,최소연봉,최대연봉,의상,AI위험,조건,합격확률,변동성]
+const JOBS_ADD=[
+ ['dentist',"Dentist","Medical",12000,25000,'coat',.15,()=>has("Dental license"),()=>.9],
+ ['kmd',"Korean medicine doctor","Medical",8000,18000,'coat',.2,()=>has("Korean medicine license"),()=>.9],
+ ['pharmacist',"Pharmacist","Medical",7000,12000,'coat',.4,()=>has("Pharmacist license"),()=>.92],
+ ['vet',"Vet","Medical",6000,12000,'coat',.15,()=>has("Vet license"),()=>.9],
+ ['radiotech',"Radiographer","Medical",3600,5000,'coat',.35,()=>maj("Public Health","Life Sciences"),()=>.55],
+ ['paramedic',"EMT","Medical",3300,4500,'fire',.1,()=>maj("Public Health")||has("Passed fire exam")||tg('care',4),()=>.55],
+ ['dietitian',"Dietitian","Medical",3000,4200,'office',.3,()=>maj("Culinary Arts","Public Health","Life Sciences")||tg('cook',4),()=>.6],
+ ['armynurse',"Army nurse officer","Public sector",4500,6000,'army',.1,()=>has("Nursing license")&&(pth('army')||sv('mnt')>=55),()=>.45],
+ ['pilot',"Air Force pilot","Public sector",6000,9500,'army',.15,()=>pth('army')&&sv('phy')>=60,()=>.35],
+ ['judge',"Judge","Law · Finance",8000,12000,'suit',.3,()=>has("Lawyer")&&qq()>=.8&&sv('int')>=78,()=>.25],
+ ['prosecutor',"Prosecutor","Law · Finance",8000,11000,'suit',.3,()=>has("Lawyer")&&sv('mnt')>=55,()=>.3],
+ ['patent',"Patent attorney","Law · Finance",8000,15000,'suit',.45,()=>has("Patent attorney"),()=>.9],
+ ['customs',"Customs broker","Law · Finance",6000,12000,'suit',.45,()=>has("Customs broker"),()=>.9],
+ ['vc',"VC associate","Law · Finance",7000,15000,'suit',.4,()=>maj("Business","Economics","Computer Science")&&qq()>=.75,()=>.2],
+ ['taxofficer',"Tax official","Public sector",3200,4200,'office',.45,()=>has("Passed Grade-9 exam")||has("Passed Grade-7 exam")||has('CPA'),()=>.85],
+ ['guard',"Prison guard","Public sector",3300,4200,'police',.1,()=>has("Passed Grade-9 exam")||has("Passed police exam")||sv('phy')>=62,()=>.45],
+ ['coastguard',"Coast guard","Public sector",3700,4800,'police',.1,()=>(has("Passed police exam")||pth('police'))&&sv('phy')>=55,()=>.6],
+ ['detective',"Private eye (PI)","Public sector",2500,7000,'suit',.25,()=>has("Passed police exam")||pth('police')||sv('int')>=68,()=>.4,1],
+ ['aide',"Lawmaker's aide","Public sector",4500,8000,'suit',.3,()=>maj("Political Science","Law","Media")||tg('debate',5),()=>.25],
+ ['whitehat',"White-hat hacker","IT · Research",6000,14000,'hoodie',.25,()=>maj("Computer Science")||tg('code',6),()=>clamp(.15+sv('int')/300,.15,.55)],
+ ['gameplanner',"Game designer","IT · Research",3800,6500,'hoodie',.4,()=>tg('game',4)||maj("Computer Science","Media"),()=>.4],
+ ['roboteng',"Robotics engineer","IT · Research",6000,9500,'office',.25,()=>maj("Mechanical Eng.","Electronic Eng.")||pth('kaist'),()=>.35],
+ ['dceng',"Data center engineer","IT · Research",5000,7500,'office',.35,()=>maj("Computer Science","Electronic Eng.")||has("IT engineer cert"),()=>.55],
+ ['atc',"Air traffic controller","IT · Research",6000,9500,'office',.3,()=>has("Foreign language")&&sv('int')>=62,()=>.3],
+ ['architect',"Architect","Trades · Service",3800,9000,'office',.35,()=>maj("Design","Mechanical Eng.")&&univ(),()=>.35],
+ ['interior',"Interior designer","Trades · Service",3200,8000,'artist',.35,()=>maj("Design")||tg('art',4),()=>.5,1],
+ ['carpenter',"Carpenter","Trades · Service",3500,7500,'farmer',.05,()=>has("Carpentry cert"),()=>.9],
+ ['mechanic',"Mechanic","Trades · Service",3200,5800,'hoodie',.15,()=>has("Auto mechanic cert"),()=>.92],
+ ['captain',"Ship's officer","Trades · Service",5500,10000,'suit',.2,()=>has("Mariner license"),()=>.85],
+ ['crane',"Tower crane operator","Trades · Service",6000,9000,'hoodie',.2,()=>has("Tower crane license"),()=>.85],
+ ['drone',"Drone pilot","Trades · Service",3000,6500,'hoodie',.3,()=>has("Drone license"),()=>.85],
+ ['voice',"Voice actor","Arts & Culture",2500,9000,'idol',.55,()=>maj("Theater & Film","Media")||tg('stage',4),()=>.3,1],
+ ['webnovel',"Web novelist","Arts & Culture",800,25000,'artist',.6,()=>maj("Korean Lit","Media")||tg('debate',4),()=>.5,1],
+ ['vtuber',"VTuber","Arts & Culture",0,15000,'gamer',.3,()=>tg('game',5)||tg('creator',5),()=>.5,1],
+ ['photographer',"Photographer","Arts & Culture",2500,8000,'artist',.45,()=>tg('art',3)||maj("Design","Media"),()=>.5,1],
+ ['comedian',"Comedian","Arts & Culture",1500,25000,'idol',.15,()=>sv('charm')>=58&&sv('soc')>=55,()=>.2,1],
+ ['choreo',"Choreographer","Arts & Culture",2500,9000,'idol',.15,()=>tg('stage',4)||pth('idol','idol_f'),()=>.4,1],
+ ['caster',"Sportscaster","Arts & Culture",4500,9000,'suit',.35,()=>maj("Media")||(tg('sport',3)&&sv('charm')>=55),()=>.25],
+ ['pension',"Guesthouse owner","Self-employed",2000,12000,'farmer',.1,()=>REG().rural||REG().id==='newtown'||tg('cook',2),()=>.55,1],
+ ['icecream',"Unstaffed ice cream shop owner","Anyone",1500,6000,'hoodie',.2,()=>true,()=>.85,1],
+ ['foodtruck',"Food truck owner","Trades · Service",1500,8000,'chef',.1,()=>tg('cook',2)||has("Cooking license"),()=>.65,1],
+ ['butcher',"Butcher shop owner","Trades · Service",3000,8000,'chef',.15,()=>REG().rural||has("Cooking license"),()=>.55],
+ ['sommelier',"Sommelier","Trades · Service",3000,6500,'suit',.3,()=>tg('cook',3)||(has("Foreign language")&&sv('sens')>=55),()=>.35],
+ ['funeral',"Funeral director","Trades · Service",3000,5000,'suit',.1,()=>tg('care',2)||maj("Social Welfare","Public Health")||sv('mnt')>=60,()=>.6],
+ ['shaman',"Shaman","Anyone",1000,20000,'mourn',.05,()=>sv('luck')>=58&&sv('sens')>=52,()=>.3,1],
+ ['haenyeo',"Haenyeo · sea diver","Trades · Service",2000,6500,'farmer',.05,()=>REG().rural&&sv('phy')>=55,()=>.55],
+ ['zookeeper',"Zookeeper","Trades · Service",2600,3900,'farmer',.1,()=>maj("Life Sciences")||tg('care',3),()=>.45],
+ ['baduk',"Pro Go player","Sports",1500,15000,'suit',.6,()=>sv('int')>=75&&sv('mnt')>=58,()=>.15,1],
+ ['jockey',"Jockey","Sports",3000,15000,'jersey',.1,()=>sv('phy')>=58&&sv('luck')>=45,()=>.2,1],
+ ['golfpro',"Golf pro","Sports",3000,15000,'jersey',.1,()=>tg('sport',4)&&(REG().id==='gangnam'||sv('phy')>=65),()=>.25,1]];
+
+// 직업 그룹(배경 · 생각 · 가족 반응)
+const JG_ADD={med:['dentist','kmd','pharmacist','vet','radiotech','paramedic','dietitian'],army:['armynurse','pilot'],law:['judge','prosecutor','patent'],fin:['customs','vc'],
+ civil:['taxofficer','aide'],police:['guard','coastguard','detective'],it:['whitehat','gameplanner','roboteng','dceng'],air:['atc'],
+ trade:['architect','carpenter','mechanic','captain','crane','drone'],creative:['interior','webnovel','photographer','caster'],stage:['voice','comedian','choreo'],esport:['vtuber'],
+ food:['foodtruck','butcher','sommelier'],gig:['icecream'],sport:['jockey','golfpro'],farm:['haenyeo','zookeeper'],stay:['pension'],rite:['funeral'],mystic:['shaman'],mind:['baduk']};
+const GI_ADD={
+ stay:{bg:'yard',prop:()=>PROP.house(250,186),th:[["All 6 cabins booked this weekend","A guest posted 20 photos in their review"],["Off-season. 0 bookings","Scrubbing the BBQ grill"],["2 a.m. noise complaint","The boiler died again"]]},
+ rite:{bg:'funeral',prop:()=>PROP.chrys(250,186),th:[["The family held my hand to thank me","A quiet farewell today"],["Back-to-back 3-day funerals","On my third black suit"],["Scared I'm going numb","All-night wake duty"]]},
+ mystic:{bg:'home',prop:()=>PROP.sparkle(250,70,1.4),th:[["Today's reading was spot on","Booked out 3 months"],["Client's not convinced","Rent day for the shrine"],["Am I losing my powers?","A YouTuber secretly filmed me"]]},
+ mind:{bg:'classroom',prop:()=>PROP.books(250,186),th:[["Total win today","Played the exact AI move"],["10 hours a day reviewing game records","Promotion tournament next week"],["3 losses straight. Seeing Go boards in my sleep","Lost to the AI again"]]}};
+const FAMJ_ADD={
+ stay:[["Mom","I'll help you wash the bedding"],["Dad","Fresh-air living is the best"],["Little bro","Friends discount in peak season?"],["Auntie","Can my ladies' club meet up there?"]],
+ rite:[["Mom","You're doing good work"],["Grandma","You'll handle mine when I go, right?"],["Dad","Tough job. I'm proud of you"],["Little bro","Isn't it creepy?"]],
+ mystic:[["Mom","So what's my fortune this year?"],["Dad","…Dad's still processing this"],["Grandma","It runs in the family, you know"],["Little bro","Read my love life pls"]],
+ mind:[["Dad","Play Dad a game. Give me a handicap"],["Mom","All that sitting must kill your back"],["Grandma","A brainy job. So proud"]]};
+
+// 첫 출근 현실 한 줄
+const JOB_REAL_ADD={
+ dentist:"40 patients a day, 6 wisdom teeth pulled. Banks call daily pitching loans for my own clinic.",kmd:"Took a year for my acupuncture hand to stop shaking. More herbal-tonic questions than actual patients.",
+ pharmacist:"300 prescriptions. I hear \"Can I take this?\" 100 times a day.",vet:"The puppy I operated on wagged its tail. The owner cried and thanked me.",
+ radiotech:"150 X-rays a day. I say \"Hold your breath\" in my sleep.",paramedic:"20 minutes of CPR in the ambulance. The patient started breathing again.",
+ dietitian:"I plan menus for 1,200 lunches. The kids' fave? Malatang, every time.",armynurse:"Military hospital ER. Soldiers hurt in training keep rolling in.",
+ pilot:"First solo flight. Didn't breathe until I landed.",judge:"My first ruling took 3 days to write. Every line is someone's life.",
+ prosecutor:"Case files stacked 1m high on my desk. Overtime is a given.",patent:"An 80-page patent spec. Engineering and law, both at once.",
+ customs:"I live under piles of import forms. When the exchange rate jumps, the phones explode.",vc:"5 pitches a day. We fund maybe 1 in 100.",
+ taxofficer:"May is income-tax season. The tax office front desk is a war zone.",guard:"Night shift at the prison. I'm used to the clang of steel doors now.",
+ coastguard:"8 days at sea, 8 on land. Still get seasick.",detective:"First case: a missing cat. Found it in 3 days.",
+ aide:"Wrote my lawmaker's speech all night. During audit season, home is a myth.",whitehat:"I hack company servers legally. The report takes longer than the hack.",
+ gameplanner:"A 40-page design doc. The devs ask, \"Are we actually doing this?\"",roboteng:"The robot arm picked up a cup for the first time. The whole team clapped.",
+ dceng:"The server room is 18°C all year. 3 a.m. outage alerts are the real horror.",atc:"400 planes a day. One wrong word means a crash.",
+ architect:"The office rookie. Pulled an all-nighter building a model.",interior:"First job: a tiny 700 sq ft apartment. The client changed the design 11 times.",
+ carpenter:"Made my first chair in the workshop. The legs are 1mm off.",mechanic:"15 oil changes a day. The grease under my nails never comes out.",
+ captain:"First voyage: Busan to Singapore, 12 days. No Wi-Fi at sea.",crane:"I sit in a cab 80m up. A bathroom trip is a 30-minute climb down.",
+ drone:"I crop-spray 50 rice paddies a day by drone.",voice:"Voiced 6 anime extras in one day.",
+ webnovel:"A new 5,500-character chapter daily. The comments scare me more than the writing.",vtuber:"An hour of avatar setup before going live. 12 concurrent viewers.",
+ photographer:"3 weddings a day. I walked more than the bride.",comedian:"Made the network's comedy hire. Sketch meetings end at 3 a.m.",
+ choreo:"Choreographed an idol's new single all night. I sleep with pain patches on my knees.",caster:"Rehearsed my first call 120 times. Forgot it all on air.",
+ pension:"6 cabins by a mountain stream. Peak season: no sleep. Off-season: all sleep.",icecream:"I watch the store CCTV all day. The stock count's off every night.",
+ foodtruck:"I chase festivals across the country. Rain means the day's a bust.",butcher:"Meat arrives at 5 a.m. and I break it down. Took a year to get the knife work right.",
+ sommelier:"Memorized 2,000 wines. Guests order the cheapest one.",funeral:"My hands shook preparing my first body. The family bowed in thanks.",
+ shaman:"Got the spirit calling and opened a tiny shrine. First client asked about job luck.",haenyeo:"2 minutes underwater on one breath. Got 12 abalone today.",
+ zookeeper:"I started out cleaning the lion pen. Still haven't met the pandas.",baduk:"Passed the pro qualifier. Lost my first pro game in 120 moves.",
+ jockey:"4 a.m. training rides. I skip dinner to stay at 52kg.",golfpro:"Started as a teaching pro. Fixing slices is my whole day."};
+
+// 세부 갈래 4개씩
+const CAREER_NEW={
+ dentist:[{l:"Open a clinic",s:"₩600M loan · Gangnam vs local",p:()=>clamp(.4+S.st.soc/300+S.st.luck/400,.3,.75),ok:{t:"Opened a neighborhood clinic. Implants booked 2 months out.",job:"Dental clinic owner",sal:()=>rsal(25000,50000),asset:-6000,flag:'biz'},no:{t:"Three dentists in one building. All I've got left is loan interest.",job:"Dental clinic owner (in the red)",sal:()=>rsal(6000,9000),asset:-15000,happy:-12,flag:'bizFail'}},
+   {l:"Orthodontist",s:"3 more years of residency",p:.45,ok:{t:"Became an orthodontist. Teens line up for braces.",job:"Orthodontist",salx:1.5,happy:4},no:{t:"No residency spot opened up."}},
+   {l:"Salaried, with work-life balance",s:"Salaried dentist",p:.8,ok:{t:"Joined a chain clinic on salary. Off at 6.",job:"Salaried dentist",salx:1,happy:8,health:4},no:{t:"No opening came up."}},
+   {l:"Medical volunteering abroad",s:"A year in Mongolia",p:.8,ok:{t:"Spent a year treating patients in rural Mongolia. The kids got smiles worth showing.",salx:.5,happy:14},no:{t:"The timing didn't work out."}}],
+ kmd:[{l:"Open a clinic",s:'',p:.5,ok:{t:"My neighborhood clinic took off. 200 senior regulars.",job:"Korean medicine clinic owner",sal:()=>rsal(15000,30000),asset:-3000,flag:'biz'},no:{t:"A huge Korean medicine hospital opened nearby.",asset:-5000,happy:-8}},
+   {l:"Herbal diet specialist",s:"Trend-driven field",p:.4,ok:{t:"My herbal diet pills went viral.",salx:1.8},no:{t:"One side-effect review killed my business.",salx:.8}},
+   {l:"Hospital department head",s:'',p:.55,ok:{t:"Became a department head at a Korean medicine hospital.",job:"Hospital department head",salx:1.25},no:{t:"Passed over."}},
+   {l:"Doctor YouTuber",s:'',p:.3,ok:{t:"400K subscribers on my health channel. Got a book out too.",salx:1.5,happy:6},no:{t:"Crickets."}}],
+ pharmacist:[{l:"Open a pharmacy",s:"₩300M key money",p:.5,ok:{t:"Opened a pharmacy under a hospital. The prescriptions never stop.",job:"Pharmacy owner",sal:()=>rsal(12000,22000),asset:-8000,flag:'biz'},no:{t:"The hospital moved out. Key money down the drain.",asset:-12000,happy:-12}},
+   {l:"Join a pharma company",s:"Trials · regulatory",p:.55,ok:{t:"Moved to a global pharma regulatory team. I have weekends now.",job:"Pharma pharmacist",salx:1.2,happy:6},no:{t:"Didn't make it."}},
+   {l:"Hospital pharmacy",s:'',p:.6,ok:{t:"Moved to a university hospital pharmacy. I prep chemo drugs.",job:"Hospital pharmacist",salx:1.05},no:{t:"No openings."}},
+   {l:"Pharmacist YouTuber",s:"Supplement reviews",p:.3,ok:{t:"My supplement comparison video blew up. 500K subscribers.",salx:1.8},no:{t:"Got caught in a sponsorship scandal.",happy:-6}}],
+ vet:[{l:"Open a vet clinic",s:'',p:.5,ok:{t:"Opened a vet clinic. Every dog in the neighborhood is my patient.",job:"Vet clinic owner",sal:()=>rsal(12000,25000),asset:-5000,flag:'biz'},no:{t:"A huge 24-hour animal hospital opened next door.",asset:-8000,happy:-10}},
+   {l:"Wildlife rescue center",s:"Meaning over money",p:.7,ok:{t:"I work at a wildlife rescue. Released an eagle owl today.",job:"Wildlife vet",salx:.7,happy:14},no:{t:"The funding got cut."}},
+   {l:"Exotic pet specialist",s:"Reptiles · parrots",p:.45,ok:{t:"Word got out about my exotic pet clinic.",salx:1.5},no:{t:"Too few clients."}},
+   {l:"Gov't disease-control vet",s:'',p:.6,ok:{t:"Became a livestock disease officer. Job for life.",job:"Livestock disease officer",salx:.9,happy:4,health:2},no:{t:"Didn't make it."}}],
+ radiotech:[{l:"Move to a university hospital",s:'',p:.5,ok:{t:"Moved to a university hospital radiology dept.",salx:1.2},no:{t:"Didn't make it."}},{l:"MRI · CT specialist",s:'',p:.6,ok:{t:"Became a dedicated MRI tech.",salx:1.15},no:{t:"Passed over."}},
+   {l:"Medical device company",s:'',p:.45,ok:{t:"Moved into medical device sales.",job:"Medical device sales",salx:1.4},no:{t:"Didn't make it."}},{l:"AI imaging company",s:"Join AI before AI takes my job",p:.35,ok:{t:"Now I run data at an AI imaging startup.",job:"Medical AI data manager",salx:1.3,flag:'airesk'},no:{t:"Didn't make it."}}],
+ paramedic:[{l:"119 paramedics",s:'',p:.5,ok:{t:"Became a 119 paramedic. 14 calls today.",job:"119 paramedic",salx:1.15,happy:6,health:-8},no:{t:"Didn't make it."}},{l:"Air ambulance team",s:'',p:.3,ok:{t:"Became an air ambulance EMT.",salx:1.3,happy:8,health:-6},no:{t:"Didn't make it."}},
+   {l:"First-aid instructor",s:'',p:.6,ok:{t:"Became a CPR instructor. 4 classes a day.",salx:1.1,health:6},no:{t:"No openings."}},{l:"Transfer into nursing school",s:'',p:.4,ok:{t:"Got my nursing license.",to:'nurse',happy:4},no:{t:"Didn't make it."}}],
+ dietitian:[{l:"Clinical dietitian",s:'',p:.5,ok:{t:"Became a clinical dietitian at a university hospital.",salx:1.2},no:{t:"Didn't make it."}},{l:"Launch a meal-plan app",s:'',p:.25,ok:{t:"My diet meal app hit 300K users.",salx:2,asset:5000},no:{t:"Couldn't raise funding.",asset:-3000}},
+   {l:"Sports dietitian",s:"Pro team",p:.3,ok:{t:"Became dietitian for a pro baseball team.",salx:1.4,happy:6},no:{t:"Didn't make it."}},{l:"School meal official",s:'',p:.55,ok:{t:"Became a school nutrition teacher. Summers off.",job:"Nutrition teacher",salx:1.1,happy:6},no:{t:"Didn't make it."}}],
+ armynurse:[{l:"Armed Forces Capital Hospital",s:'',p:.55,ok:{t:"Assigned to the ICU at the Armed Forces Capital Hospital.",salx:1.1,health:-4},no:{t:"Got posted to a base in the sticks."}},{l:"Overseas medical unit",s:'',p:.35,ok:{t:"Deployed with a UN peacekeeping medical team.",salx:1.3,happy:10},no:{t:"Didn't get picked."}},
+   {l:"University hospital after discharge",s:'',p:.6,ok:{t:"Left the military and became a university hospital nurse.",to:'nurse'},no:{t:"No openings."}},{l:"Career service · promotion",s:'',p:.5,ok:{t:"Promoted to major.",salx:1.2},no:{t:"Passed over."}}],
+ pilot:[{l:"Fighter flight lead",s:'',p:.4,ok:{t:"Became an F-35 flight lead.",salx:1.25,happy:8,health:-6},no:{t:"Passed over."}},{l:"Black Eagles",s:"Air Force aerobatic team",p:.15,ok:{t:"Made the Black Eagles. Drew a taegeuk in the sky at the air show.",salx:1.2,happy:14},no:{t:"Didn't get picked."}},
+   {l:"Airline captain after discharge",s:"3x salary",p:.6,ok:{t:"Became an airline captain.",job:"Airline captain",sal:()=>rsal(20000,30000),happy:6},no:{t:"Still owed years of mandatory service."}},{l:"Air Force Academy instructor",s:'',p:.5,ok:{t:"Became a flight instructor.",salx:1.05,health:6},no:{t:"No openings."}}],
+ judge:[{l:"Promotion to senior judge",s:'',p:.4,ok:{t:"Became a senior judge.",job:"Senior judge",salx:1.2,health:-4},no:{t:"Passed over."}},{l:"Go Big Law",s:"Ex-judge perks",p:.5,ok:{t:"Jumped to Big Law. Salary tripled.",to:'bigfirm',sal:()=>rsal(30000,50000)},no:{t:"Decided to stay."}},
+   {l:"Constitutional Court researcher",s:'',p:.3,ok:{t:"Became a Constitutional Court researcher.",salx:1.1,happy:6},no:{t:"Didn't make it."}},{l:"Rural branch court chief",s:"Work-life balance",p:.6,ok:{t:"Became chief of a rural branch court. I garden after work.",salx:1,happy:10,health:6},no:{t:"No openings."}}],
+ prosecutor:[{l:"Special investigations prosecutor",s:"Big corruption cases",p:.35,ok:{t:"Made the news investigating chaebol corruption.",job:"Special investigations prosecutor",salx:1.1,happy:6,health:-8},no:{t:"The investigation got blocked.",happy:-6}},{l:"Chief prosecutor",s:'',p:.4,ok:{t:"Became a chief prosecutor.",salx:1.2},no:{t:"Passed over."}},
+   {l:"Open a law office",s:"Ex-judge perks",p:.6,ok:{t:"Opened my own law office. Cases are pouring in.",to:'lawyer',sal:()=>rsal(20000,40000)},no:{t:"No cases came in."}},{l:"Enter politics",s:'',p:.15,ok:{t:"Got nominated to run for the National Assembly.",job:"National Assembly candidate",salx:1,happy:4},no:{t:"Didn't get the nomination."}}],
+ patent:[{l:"Patent firm partner",s:'',p:.4,ok:{t:"Made partner at a patent firm.",salx:1.6},no:{t:"Passed over."}},{l:"Big corp IP team",s:'',p:.55,ok:{t:"Moved to a big corp as head of patents.",salx:1.15,happy:6},no:{t:"Didn't make it."}},
+   {l:"Win a patent suit",s:'',p:.3,ok:{t:"Won a global patent suit. ₩200M bonus.",salx:1.3,asset:20000},no:{t:"Lost.",happy:-6}},{l:"Go solo",s:'',p:.5,ok:{t:"Opened my own patent office.",salx:1.4},no:{t:"No clients showed up."}}],
+ customs:[{l:"Open a customs firm",s:'',p:.5,ok:{t:"Started a customs firm. 30 importers on the books.",salx:1.6},no:{t:"Clients never showed up."}},{l:"Big corp logistics",s:'',p:.55,ok:{t:"Moved to a big corp as head of customs.",salx:1.15,happy:4},no:{t:"Didn't make it."}},
+   {l:"Overseas-order customs niche",s:'',p:.45,ok:{t:"Customs brokering for overseas orders blew up.",salx:1.8},no:{t:"Got undercut on price."}},{l:"Move to Korea Customs",s:'',p:.4,ok:{t:"Became a customs officer.",salx:.85,happy:6},no:{t:"Didn't make it."}}],
+ vc:[{l:"Unicorn hunting",s:'',p:.2,ok:{t:"A portfolio company went unicorn. ₩1B carry.",salx:1.5,asset:100000,happy:10},no:{t:"Portfolio companies folded one after another.",happy:-8}},{l:"Make partner",s:'',p:.35,ok:{t:"Made partner.",salx:1.5},no:{t:"Passed over."}},
+   {l:"Go founder",s:'',p:.25,ok:{t:"Started my own company. My investor network is the cheat code.",to:'ceo'},no:{t:"Couldn't raise a round.",asset:-5000}},{l:"Big corp CVC",s:'',p:.5,ok:{t:"Moved to a big corp's venture arm.",salx:1.1,happy:4},no:{t:"Didn't make it."}}],
+ taxofficer:[{l:"NTS Investigations",s:"Tax audits",p:.4,ok:{t:"Joined Investigations. Auditing chaebol families now.",job:"Tax investigator",salx:1.15,health:-4},no:{t:"Passed over."}},{l:"Tax accountant exam",s:'',p:.2,ok:{t:"Passed the tax accountant exam and opened my own office.",job:"Tax accountant",sal:()=>rsal(8000,15000)},no:{t:"Didn't make it."}},
+   {l:"Grind it out till retirement",s:'',p:1,ok:{t:"Your pay step went up.",salx:1.1,happy:4}},{l:"Tax YouTuber",s:'',p:.25,ok:{t:"My tax-refund hacks video went viral.",salx:1.4},no:{t:"Side gig not approved."}}],
+ guard:[{l:"Corrections promotion",s:'',p:.5,ok:{t:"Promoted to senior corrections officer.",salx:1.15},no:{t:"Passed over."}},{l:"Inmate therapy",s:'',p:.4,ok:{t:"Running inmate therapy now. A released inmate wrote me a letter.",salx:1.05,happy:10},no:{t:"Didn't make it."}},
+   {l:"Switch to police",s:'',p:.35,ok:{t:"Switched over to the police.",to:'cop'},no:{t:"Didn't make it."}},{l:"Grind it out till retirement",s:'',p:1,ok:{t:"Pay grade went up. I don't even hear the steel doors anymore.",salx:1.1,happy:2}}],
+ coastguard:[{l:"Special rescue unit",s:'',p:.3,ok:{t:"Joined the coast guard rescue unit. Saved 9 people off a fishing boat today.",salx:1.15,happy:10,health:-8},no:{t:"Failed the fitness test."}},{l:"Patrol ship captain",s:'',p:.35,ok:{t:"Became captain of a patrol ship.",salx:1.3},no:{t:"Passed over."}},
+   {l:"Illegal fishing crackdown",s:'',p:.5,ok:{t:"Seized an illegal fishing boat. Made the news.",salx:1.1,happy:6,health:-6},no:{t:"Got hurt on a raid.",health:-12}},{l:"Desk job ashore",s:'',p:.6,ok:{t:"Moved to Coast Guard HQ. No more seasickness.",salx:1.05,health:6},no:{t:"No openings."}}],
+ detective:[{l:"Corporate investigations",s:"Industrial espionage",p:.4,ok:{t:"Cracked a corporate tech-leak case. ₩100M fee.",salx:2},no:{t:"Clients dried up."}},{l:"Grow the agency",s:'',p:.45,ok:{t:"Now a detective agency with 5 staff.",salx:1.6},no:{t:"Shut it down."}},
+   {l:"Missing persons",s:'',p:.5,ok:{t:"Found someone missing for 10 years. The family hugged and cried.",salx:1.1,happy:14},no:{t:"The trail went cold."}},{l:"Detective YouTuber",s:'',p:.3,ok:{t:"Case-story channel hit 600K subscribers.",salx:1.8},no:{t:"Leaked client info. Scandal.",happy:-8}}],
+ aide:[{l:"Run for office",s:'',p:.15,ok:{t:"Won a district council seat.",job:"District councilor",salx:1.1,happy:8},no:{t:"Lost. All I've got is campaign debt.",asset:-5000,happy:-10}},{l:"Presidential Office staffer",s:'',p:.2,ok:{t:"Landed a job at the Presidential Office.",salx:1.2,health:-8},no:{t:"Didn't make it."}},
+   {l:"Big corp gov affairs",s:'',p:.5,ok:{t:"Became a big corp's head of government affairs.",salx:1.5},no:{t:"No openings."}},{l:"Political pundit",s:'',p:.3,ok:{t:"Became a regular panelist on a news show.",salx:1.4,happy:4},no:{t:"The bookings stopped."}}],
+ whitehat:[{l:"Bug bounty jackpot",s:'',p:.3,ok:{t:"Found a Big Tech vuln. ₩300M bounty.",salx:1.2,asset:30000},no:{t:"Someone reported it first."}},{l:"Start a security firm",s:'',p:.3,ok:{t:"Founded a security startup. Banks are clients.",salx:1.8},no:{t:"Shut it down."}},
+   {l:"NIS cyber team",s:'',p:.25,ok:{t:"Joined the national cyber security team. Can't tell you what I do.",salx:1,happy:6},no:{t:"Didn't make it."}},{l:"Big Tech security abroad",s:'',p:.2,ok:{t:"Moved to a Silicon Valley security team.",salx:2.2},no:{t:"Didn't make it."}}],
+ gameplanner:[{l:"AAA launch",s:'',p:.3,ok:{t:"My game hit #1 in sales. ₩100M bonus.",salx:1.5,asset:10000,happy:8},no:{t:"Shut down 2 weeks after launch.",happy:-10}},{l:"Director promotion",s:'',p:.4,ok:{t:"Became game director.",job:"Game director",salx:1.4},no:{t:"Passed over."}},
+   {l:"Indie game studio",s:'',p:.25,ok:{t:"My indie game sold 500K copies on Steam.",salx:2},no:{t:"Shut it down.",asset:-3000}},{l:"Gaming YouTuber",s:'',p:.3,ok:{t:"My game-dev behind-the-scenes channel blew up.",to:'youtuber'},no:{t:"Crickets."}}],
+ roboteng:[{l:"Humanoid R&D",s:'',p:.35,ok:{t:"Our humanoid robot climbed stairs for the first time.",salx:1.4,happy:8},no:{t:"The project got shelved."}},{l:"Robotics startup",s:'',p:.25,ok:{t:"Our serving-robot startup raised ₩10B.",salx:1.5,asset:10000},no:{t:"Shut it down."}},
+   {l:"Robotics firm abroad",s:'',p:.2,ok:{t:"Moved to a US robotics company.",salx:2},no:{t:"Didn't make it."}},{l:"Smart factory lead",s:'',p:.5,ok:{t:"Became factory automation lead.",salx:1.3},no:{t:"Passed over."}}],
+ dceng:[{l:"AI data center build",s:"GPU boom",p:.5,ok:{t:"Leading a GPU data center build. Bonus went brrr.",salx:1.5},no:{t:"The project got pushed back."}},{l:"Move to a cloud co.",s:'',p:.4,ok:{t:"Moved to a global cloud company.",salx:1.4},no:{t:"Didn't make it."}},
+   {l:"Escape night shifts",s:'',p:.6,ok:{t:"Moved to the day ops team. I actually sleep now.",salx:.95,happy:6,health:8},no:{t:"No openings."}},{l:"Power systems expert",s:'',p:.45,ok:{t:"Became a data center power design expert.",salx:1.3},no:{t:"Failed the certification exam."}}],
+ atc:[{l:"Incheon Airport tower",s:'',p:.4,ok:{t:"Assigned to the Incheon Airport tower.",salx:1.2,health:-4},no:{t:"Stuck at a regional airport."}},{l:"ATC instructor",s:'',p:.5,ok:{t:"Became an ATC instructor.",salx:1.1,health:6},no:{t:"Passed over."}},
+   {l:"ATC abroad",s:'',p:.2,ok:{t:"Became a controller at Dubai Airport.",salx:1.8},no:{t:"Didn't make it."}},{l:"Aviation safety inspector",s:'',p:.4,ok:{t:"Became a government aviation safety inspector.",salx:1.1,happy:4},no:{t:"Didn't make it."}}],
+ architect:[{l:"Architect license",s:'',p:.35,ok:{t:"Got licensed and opened my own firm.",job:"Architecture firm head",salx:1.6},no:{t:"Failed the exam."}},{l:"Win a competition",s:'',p:.2,ok:{t:"Won the design competition for a city library.",salx:1.4,happy:12},no:{t:"You lost the election."}},
+   {l:"Big construction co.",s:'',p:.5,ok:{t:"Moved to a big builder's design team.",salx:1.3},no:{t:"Didn't make it."}},{l:"Firm abroad",s:'',p:.2,ok:{t:"Moved to a London architecture firm.",salx:1.5,happy:6},no:{t:"Didn't make it."}}],
+ interior:[{l:"Start an interior firm",s:'',p:.4,ok:{t:"My interior firm went viral on mom forums.",salx:1.8},no:{t:"Got sued over defects.",asset:-5000}},{l:"Cafés · Retail spaces",s:'',p:.4,ok:{t:"Made a name doing Seongsu-dong café interiors.",salx:1.6},no:{t:"No gigs came in."}},
+   {l:"Home styling YouTuber",s:'',p:.3,ok:{t:"DIY interior channel hit 500K subscribers.",salx:1.7},no:{t:"Crickets."}},{l:"Big corp space team",s:'',p:.45,ok:{t:"Moved to a big corp's space design team.",salx:1.2,happy:4},no:{t:"Didn't make it."}}],
+ carpenter:[{l:"Open a workshop",s:'',p:.5,ok:{t:"My solid-wood furniture shop went viral. 3-month backorder.",salx:1.5,happy:8},no:{t:"Shut it down."}},{l:"Hanok master carpenter",s:'',p:.25,ok:{t:"Became a hanok master carpenter. I restore heritage sites.",job:"Hanok master carpenter",salx:1.4,happy:10},no:{t:"The apprenticeship took forever."}},
+   {l:"Woodworking classes",s:'',p:.6,ok:{t:"Weekend woodworking classes sell out every time.",salx:1.2,happy:6},no:{t:"Nobody enrolled."}},{l:"Site foreman",s:'',p:.6,ok:{t:"Became an interior site foreman.",salx:1.3,health:-4},no:{t:"The work dried up."}}],
+ mechanic:[{l:"Open a garage",s:'',p:.5,ok:{t:"Opened my own garage. Local cabbies are regulars.",salx:1.7},no:{t:"Shut it down."}},{l:"EV repair specialist",s:'',p:.5,ok:{t:"Became an EV battery repair specialist.",salx:1.4},no:{t:"Only got the training."}},
+   {l:"Racing team mechanic",s:'',p:.2,ok:{t:"Joined a racing team. I change tires in 4 seconds.",salx:1.3,happy:12},no:{t:"Didn't make it."}},{l:"Automaker QA team",s:'',p:.4,ok:{t:"Moved to an automaker's QA team.",salx:1.4},no:{t:"Didn't make it."}}],
+ captain:[{l:"Make captain",s:'',p:.45,ok:{t:"Became captain of a container ship.",job:"Ship captain",salx:1.5,health:-4},no:{t:"Passed over."}},{l:"Harbor pilot",s:"Top pay at sea",p:.15,ok:{t:"Passed the pilot exam. I guide giant ships into port.",job:"Harbor pilot",sal:()=>rsal(25000,40000),happy:6},no:{t:"Didn't make it."}},
+   {l:"Shipping HQ",s:'',p:.55,ok:{t:"Moved to shipping HQ. Home every night.",salx:.9,happy:8,health:6},no:{t:"No openings."}},{l:"Cruise officer",s:'',p:.3,ok:{t:"Became a cruise ship officer.",salx:1.3,happy:6},no:{t:"Didn't make it."}}],
+ crane:[{l:"First call on every site",s:'',p:.6,ok:{t:"Never short on work. ₩10M a month.",salx:1.3,health:-4},no:{t:"Construction went bust.",salx:.7}},{l:"Crane rental biz",s:'',p:.3,ok:{t:"Bought 3 cranes and rent them out.",salx:2,asset:-10000},no:{t:"All I've got left is the installments.",asset:-8000}},
+   {l:"Switch to safety manager",s:'',p:.5,ok:{t:"Became a construction safety manager. Feet on the ground.",salx:.9,health:8},no:{t:"Wasn't qualified enough."}},{l:"Overseas site",s:"Middle East",p:.4,ok:{t:"Shipped out to a Saudi site. ₩150M salary.",salx:1.6,happy:-4},no:{t:"The posting got canceled."}}],
+ drone:[{l:"Crop-spraying drones",s:'',p:.5,ok:{t:"Started a drone crop-spraying biz. Zero days off in farm season.",salx:1.8},no:{t:"The work's seasonal."}},{l:"Drone show crew",s:'',p:.3,ok:{t:"Directed a 1,000-drone light show.",salx:1.5,happy:10},no:{t:"Didn't make it."}},
+   {l:"Film drones",s:'',p:.3,ok:{t:"Became an aerial cinematographer for movies.",salx:1.6,happy:6},no:{t:"No gigs came in."}},{l:"Military drone instructor",s:'',p:.4,ok:{t:"Became a military drone instructor.",salx:1.2},no:{t:"Didn't make it."}}],
+ voice:[{l:"Anime lead",s:'',p:.25,ok:{t:"Voiced an anime lead. I get fan mail.",salx:2,happy:10},no:{t:"Didn't pass the audition."}},{l:"Ads · Narration",s:'',p:.5,ok:{t:"Became the regular voice of a documentary series.",salx:1.5},no:{t:"AI voices took my work.",salx:.7}},
+   {l:"Game voice actor",s:'',p:.4,ok:{t:"Landed the lead in a AAA game.",salx:1.6},no:{t:"Didn't make it."}},{l:"AI voice licensing",s:"Sell my voice",p:.4,ok:{t:"Licensed my voice to an AI company.",salx:1.3,asset:5000},no:{t:"The contract was trash.",happy:-6}}],
+ webnovel:[{l:"#1 web novel",s:'',p:.2,ok:{t:"#1 on the charts. ₩50M a month rolling in.",sal:()=>rsal(30000,60000),happy:10},no:{t:"Views hit rock bottom.",salx:.6}},{l:"Webtoon deal",s:'',p:.3,ok:{t:"My novel became a webtoon.",salx:1.6,asset:5000},no:{t:"The deal fell through."}},
+   {l:"Drama rights",s:'',p:.15,ok:{t:"Sold the drama rights. ₩300M upfront.",salx:1.5,asset:30000,happy:12},no:{t:"Production fell through."}},{l:"Hiatus · Recovery",s:"Wrists · Grit",p:1,ok:{t:"Took 6 months off. My wrists healed.",salx:.5,happy:8,health:10}}],
+ vtuber:[{l:"500K subs",s:'',p:.3,ok:{t:"500K subs. Merch sold out.",sal:()=>rsal(15000,40000),happy:8},no:{t:"Stuck at 3K subs."}},{l:"VTuber agency",s:'',p:.4,ok:{t:"Signed with a VTuber agency.",salx:1.5},no:{t:"The contract was sketchy."}},
+   {l:"Go Japan",s:'',p:.25,ok:{t:"My Japanese streams blew up. Superchats come in yen.",salx:2},no:{t:"Crickets."}},{l:"Face reveal drama",s:'',p:.5,ok:{t:"My face leaked and it actually made me trend.",salx:1.2},no:{t:"Got doxxed and quit streaming.",salx:.3,happy:-14}}],
+ photographer:[{l:"Open a studio",s:'',p:.45,ok:{t:"My portrait studio went viral.",salx:1.6},no:{t:"Shut it down."}},{l:"Fashion magazine",s:'',p:.25,ok:{t:"Shot a fashion magazine spread.",salx:1.6,happy:8},no:{t:"Didn't make it."}},
+   {l:"Photo exhibition",s:'',p:.2,ok:{t:"My first solo show sold out.",salx:1.3,happy:12},no:{t:"Sold zero."}},{l:"Adapt to AI",s:'',p:.5,ok:{t:"AI retouching tripled my speed.",salx:1.3},no:{t:"AI images stole my gigs.",salx:.7}}],
+ comedian:[{l:"Catchphrase hit",s:'',p:.2,ok:{t:"My catchphrase swept the nation. 10 ad deals.",sal:()=>rsal(30000,80000),happy:12},no:{t:"The segment got axed.",salx:.6}},{l:"Comedy YouTube",s:'',p:.35,ok:{t:"Comedy channel hit 1.5M subscribers.",salx:2.5},no:{t:"20K subscribers."}},
+   {l:"Variety show host",s:'',p:.2,ok:{t:"Became main host of a variety show.",salx:3,happy:8},no:{t:"No one booked me."}},{l:"Event MC",s:'',p:.6,ok:{t:"I MC 80 local festivals a year.",salx:1.5},no:{t:"The gigs dried up."}}],
+ choreo:[{l:"K-pop choreo hit",s:'',p:.25,ok:{t:"My choreo became a worldwide challenge.",salx:2.5,happy:12},no:{t:"My draft didn't get picked."}},{l:"Open a dance studio",s:'',p:.5,ok:{t:"My dance studio has 200 students.",salx:1.6},no:{t:"Shut it down."}},
+   {l:"Dance competition show",s:'',p:.25,ok:{t:"Won a dance survival show.",salx:2,happy:10},no:{t:"Out in round 1.",happy:-6}},{l:"World tour dance captain",s:'',p:.35,ok:{t:"Became dance captain on an idol world tour.",salx:1.5,health:-6},no:{t:"Didn't make it."}}],
+ caster:[{l:"World Cup broadcast",s:'',p:.2,ok:{t:"Called the World Cup final. My line became a meme.",salx:1.6,happy:12},no:{t:"Another caster got it."}},{l:"Go freelance",s:'',p:.4,ok:{t:"Went freelance as a broadcaster.",salx:1.8},no:{t:"No one booked me."}},
+   {l:"Sports YouTuber",s:'',p:.3,ok:{t:"Sports talk channel hit 400K subscribers.",salx:1.5},no:{t:"Crickets."}},{l:"Team PR",s:'',p:.5,ok:{t:"Became PR head for a pro team.",salx:1.1,happy:4},no:{t:"No openings."}}],
+ pension:[{l:"Aesthetic remodel",s:"₩200M loan · Insta vibes",p:()=>clamp(.35+S.st.sens/250,.3,.75),ok:{t:"Added an outdoor hot tub and fire pit. Insta does the bookings.",salx:1.8,asset:-5000,happy:6},no:{t:"Paid for the remodel. Bookings didn't move.",asset:-15000,happy:-10}},
+   {l:"Auto booking · AI ops",s:"Ditch platform fees",p:()=>clamp(.3+S.st.int/250,.3,.75),ok:{t:"Built my own booking site with AI replies. No fees, and I sleep at night.",salx:1.4,happy:10,health:6,flag:'airesk'},no:{t:"Automated it and got double bookings.",happy:-8}},
+   {l:"2nd site · Glamping",s:'',p:.4,ok:{t:"Opened glamping next door. Full every weekend.",salx:2,asset:-8000,flag:'biz'},no:{t:"Permits denied. Money stuck in the land.",asset:-10000,happy:-8,flag:'bizFail'}},
+   {l:"Sell the guesthouse",s:'',p:.6,ok:{t:"Sold the guesthouse at a nice profit.",job:"Ex-guesthouse owner",sal:()=>rsal(3000,4500),asset:20000,happy:6},no:{t:"No buyers.",happy:-4}}],
+ icecream:[{l:"Expand to 3 shops",s:'',p:.4,ok:{t:"3 unstaffed shops. I work 1 hour a day.",salx:2,asset:-5000},no:{t:"4 competitors opened next door.",asset:-6000,happy:-8}},{l:"Anti-theft",s:'',p:.5,ok:{t:"Put in AI CCTV. Theft dropped 90%.",salx:1.2},no:{t:"Caught the thief. It was a 4th grader.",happy:-4}},
+   {l:"Unstaffed-store consulting",s:'',p:.3,ok:{t:"My unstaffed-store startup course sells.",salx:1.6},no:{t:"Nobody enrolled."}},{l:"Close up · Get a job",s:'',p:.7,ok:{t:"Handed off the shop and got a job.",to:'smallco'},no:{t:"Handed it over with zero key money."}}],
+ foodtruck:[{l:"Festival jackpot",s:'',p:.4,ok:{t:"₩8M in one day at a local festival.",salx:1.7},no:{t:"Rained out. Disaster.",salx:.8}},{l:"Brick-and-mortar",s:'',p:.35,ok:{t:"Opened a restaurant with my truck menu. Lines out the door.",salx:2,asset:-5000,flag:'biz'},no:{t:"Couldn't keep up with rent.",asset:-7000,flag:'bizFail'}},
+   {l:"Go on TV",s:'',p:.25,ok:{t:"Won a food truck competition show.",salx:1.8,happy:10},no:{t:"Out in episode 1."}},{l:"Catering biz",s:'',p:.45,ok:{t:"I cater corporate events.",salx:1.5},no:{t:"No gigs came in."}}],
+ butcher:[{l:"Hanwoo brand",s:'',p:.35,ok:{t:"Launched a local hanwoo (Korean beef) brand. Holiday gift sets sold out.",salx:1.8},no:{t:"Beef prices crashed.",salx:.8}},{l:"Butcher-restaurant",s:'',p:.45,ok:{t:"Opened a butcher-restaurant. Top pick for work dinners.",salx:1.6},no:{t:"Shut it down."}},
+   {l:"Online sales",s:'',p:.45,ok:{t:"Dawn-delivery dry-aged beef blew up.",salx:1.7},no:{t:"Shipping disaster."}},{l:"Take over the family biz",s:'',p:.6,ok:{t:"Took over my dad's shop.",salx:1.2,happy:6},no:{t:"Fought with my siblings.",happy:-8}}],
+ sommelier:[{l:"Hotel head sommelier",s:'',p:.35,ok:{t:"Became head sommelier at a 5-star hotel.",salx:1.5},no:{t:"Passed over."}},{l:"Wine importer",s:'',p:.35,ok:{t:"Started a wine import business.",salx:1.8},no:{t:"Exchange rates killed it."}},
+   {l:"Sommelier contest",s:'',p:.2,ok:{t:"Won the national sommelier championship.",salx:1.4,happy:12},no:{t:"Out in the prelims."}},{l:"Open a wine bar",s:'',p:.4,ok:{t:"My wine bar became a date-night hotspot.",salx:1.6},no:{t:"Shut it down."}}],
+ funeral:[{l:"Funeral home manager",s:'',p:.55,ok:{t:"Became a funeral home manager.",salx:1.3},no:{t:"Passed over."}},{l:"Funeral services co.",s:'',p:.3,ok:{t:"Founded a funeral services co. Aging society = steady biz.",salx:2},no:{t:"Shut it down."}},
+   {l:"Pet funerals",s:'',p:.45,ok:{t:"Opened a pet funeral home. Owners cry and thank me.",salx:1.6,happy:8},no:{t:"Permit denied."}},{l:"Estate cleaner",s:'',p:.6,ok:{t:"I run an estate cleanup company. I clear out lonely-death sites.",salx:1.4,happy:-2},no:{t:"Too heavy. I quit.",happy:-6}}],
+ shaman:[{l:"Famous shaman",s:'',p:.25,ok:{t:"Celebs are regulars. Booked a year out.",sal:()=>rsal(20000,50000)},no:{t:"Reviews saying my readings were wrong went viral.",salx:.5,happy:-8}},{l:"Fortune YouTuber",s:'',p:.35,ok:{t:"New Year fortune video hit 10M views.",salx:2.5},no:{t:"Crickets."}},
+   {l:"Tarot café",s:'',p:.5,ok:{t:"My tarot café became a college-town hotspot.",salx:1.4},no:{t:"Shut it down."}},{l:"Send the spirit away",s:"Live a normal life",p:.5,ok:{t:"Did a gut (shaman ritual) and became a normal office worker.",to:'smallco',happy:6},no:{t:"It keeps showing up in my dreams.",happy:-6}}],
+ haenyeo:[{l:"Haenyeo tours",s:'',p:.5,ok:{t:"My haenyeo (free-diver) experience is packed with tourists.",salx:1.7,happy:6},no:{t:"The tourists stopped coming."}},{l:"Direct seafood sales",s:'',p:.5,ok:{t:"Selling my own abalone direct. It's a hit.",salx:1.6},no:{t:"Warmer seas, smaller catch.",salx:.7}},
+   {l:"Haenyeo YouTuber",s:'',p:.3,ok:{t:"Gen Z haenyeo channel hit 800K subscribers.",salx:2,happy:6},no:{t:"Crickets."}},{l:"Fisheries official",s:'',p:.4,ok:{t:"Became a fisheries civil servant.",salx:1.1},no:{t:"Didn't make it."}}],
+ zookeeper:[{l:"Panda keeper",s:'',p:.15,ok:{t:"Became the panda keeper. They call me Panda Grandpa.",salx:1.3,happy:14},no:{t:"Didn't get picked."}},{l:"Zoo team lead",s:'',p:.5,ok:{t:"Became big-cat house team lead.",salx:1.2},no:{t:"Passed over."}},
+   {l:"Animal behaviorist",s:'',p:.35,ok:{t:"I'm on a pet behavior TV show.",salx:1.6,happy:6},no:{t:"Just took the certification course."}},{l:"Wildlife org",s:'',p:.6,ok:{t:"Moved to an endangered species nonprofit.",salx:.9,happy:10},no:{t:"No openings."}}],
+ baduk:[{l:"Win a title",s:'',p:.15,ok:{t:"Won an international title! ₩300M prize.",salx:2,asset:30000,happy:14},no:{t:"Lost in the final."}},{l:"Baduk commentator",s:'',p:.45,ok:{t:"Became a Baduk TV commentator.",salx:1.3},no:{t:"No openings."}},
+   {l:"Baduk AI company",s:'',p:.3,ok:{t:"Joined a baduk AI company as an advisor.",salx:1.6},no:{t:"Didn't make it."}},{l:"Baduk school",s:'',p:.55,ok:{t:"100 kids at my baduk school.",salx:1.4,happy:6},no:{t:"No students signed up."}}],
+ jockey:[{l:"Win the Grand Prix",s:'',p:.2,ok:{t:"Grand Prix win! The purse paid out big.",salx:2.2,happy:12},no:{t:"Fell off and got hurt.",health:-15,happy:-8}},{l:"Become a trainer",s:'',p:.45,ok:{t:"Became a trainer. I manage 20 horses.",job:"Horse trainer",salx:1.3,health:6},no:{t:"Didn't make it."}},
+   {l:"Race abroad",s:'',p:.2,ok:{t:"Moved to Hong Kong racing.",salx:2},no:{t:"Didn't make it."}},{l:"Retire · Riding club",s:'',p:.55,ok:{t:"Opened a riding club.",salx:1.1,happy:8},no:{t:"Shut it down."}}],
+ golfpro:[{l:"Tour win",s:'',p:.12,ok:{t:"KPGA Tour win! ₩200M prize.",salx:2.5,asset:20000,happy:14},no:{t:"Missed 12 cuts in a row.",happy:-8}},{l:"Celeb golf coach",s:'',p:.45,ok:{t:"Became a coach to celebs. Booked 3 months out.",salx:1.8},no:{t:"Couldn't grow my client list."}},
+   {l:"Golf YouTuber",s:'',p:.3,ok:{t:"Golf lesson channel hit 600K subscribers.",salx:2},no:{t:"Crickets."}},{l:"Open a screen golf spot",s:'',p:.45,ok:{t:"Opened a screen golf place.",salx:1.6,asset:-5000},no:{t:"Shut it down.",asset:-8000}}]};
+
+// 진로 · 자격 연결
+const LIC_ADD={"Medicine":[["Dental track · Dental boards",()=>.85,"Dental license"],["Oriental med transfer · KM boards",()=>clamp(.3+sv('int')/300,.3,.7),"Korean medicine license"]],
+ "Life Sciences":[["Pharmacy transfer (PEET) · Pharmacy boards",()=>clamp(.12+sv('int')/300,.1,.5),"Pharmacist license"],["Vet school transfer · Vet boards",()=>clamp(.12+sv('int')/300,.1,.5),"Vet license"]],
+ "Electronic Eng.":[["Patent attorney exam",()=>clamp(.04+sv('int')/600,.03,.2),"Patent attorney"]],"Mechanical Eng.":[["Patent attorney exam",()=>clamp(.04+sv('int')/600,.03,.2),"Patent attorney"]],
+ "Business":[["Customs broker exam",()=>clamp(.08+sv('int')/500,.06,.3),"Customs broker"]],"Economics":[["Customs broker exam",()=>clamp(.08+sv('int')/500,.06,.3),"Customs broker"]]};
+const TRADE_ADD=[["Carpentry cert",()=>.85],["Auto mechanic cert",()=>.8],["Mariner license",()=>clamp(.4+sv('phy')/300,.4,.8)],["Tower crane license",()=>.75],["Drone license",()=>.85]];
+const FIT_ADD={"Public Health":['radiotech','paramedic','dietitian'],"Life Sciences":['radiotech','zookeeper','dietitian'],"Culinary Arts":['dietitian','foodtruck','sommelier','butcher'],"Political Science":['aide'],"Law":['aide'],
+ "Computer Science":['whitehat','gameplanner','dceng','vc'],"Electronic Eng.":['roboteng','dceng'],"Mechanical Eng.":['roboteng','architect'],"Design":['architect','interior','photographer'],"Media":['caster','photographer','voice','webnovel','gameplanner'],
+ "Korean Lit":['webnovel'],"Theater & Film":['voice'],"Applied Music":['choreo'],"Business":['vc'],"Economics":['vc'],"Phys Ed":['golfpro','jockey'],"Nursing":['armynurse'],"Medicine":['dentist','kmd'],"Social Welfare":['funeral'],"English Lit":['atc','sommelier']};
+
+JOBS.splice(JOBS.findIndex(j=>j[0]==='owner'),0,...JOBS_ADD);
 const JOBMAP=Object.fromEntries(JOBS.map(j=>[j[0],j]));
 const JOB_COUNT=JOBS.length-2;
 const JKEY='krsurvive-en:jdex',JOB_ORDER=JOBS.map(j=>j[0]).filter(id=>id!=='owner'&&id!=='fire_ret');
@@ -2413,6 +2670,9 @@ Object.assign(CAREER_ADD,{
  pd:[{l:"Variety → drama PD",s:'',p:.15,ok:{t:"Made your debut directing a drama.",salx:1.6,happy:6},no:{t:"The chance never came."}}],
  national:[{l:"Corporate team · player-coach",s:'',p:.6,ok:{t:"Kept playing as a player-coach on a corporate team.",job:"Corporate Team Player-Coach",salx:.8,happy:4},no:{t:"The team got disbanded.",salx:.4,happy:-8}}],
  reporter:[{l:"YouTube news channel",s:'',p:.2,ok:{t:"Indie news channel: 300K subscribers.",salx:1.4,happy:6},no:{t:"Subscribers didn't budge.",salx:.6}}]});
+Object.assign(CAREER_ADD,CAREER_NEW);Object.entries(JG_ADD).forEach(([g,ids])=>grp(g,ids));Object.assign(GI,GI_ADD);Object.assign(FAMJ,FAMJ_ADD);Object.assign(JOB_REAL,JOB_REAL_ADD);
+for(const [k,v] of Object.entries(LIC_ADD))LIC_BY_MAJOR[k]=(LIC_BY_MAJOR[k]||[]).concat(v);TRADE_LIC.push(...TRADE_ADD);
+for(const [k,v] of Object.entries(FIT_ADD))if(MAJOR_INFO[k])MAJOR_INFO[k][1].push(...v);
 for(const [k,v] of Object.entries(CAREER_ADD)){if(!v.length)continue;CAREER[k]=(CAREER[k]||[]).concat(v)}
 
 const BIZ_CAREER=[{l:"2nd store · expand",s:"₩200M loan",p:()=>clamp(.35+S.st.luck/400+S.st.soc/500,.25,.65),ok:{t:"Store #2 took off too. You've got 15 employees now.",salx:1.6,asset:-5000,happy:2},no:{t:"Store #2 cannibalized store #1. You shut #2 down.",asset:-15000,salx:.7,happy:-10,flag:'bizFail'}},
