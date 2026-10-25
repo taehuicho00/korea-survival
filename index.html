@@ -455,6 +455,10 @@ const TITLES={
  godsaeng:{n:'갓생러',d:'새벽 5시 기상, 자격증 3개. 친구는 0명.'},
  star:{n:'월드 스타',d:'공항에 팬들이 마중 나와요.'},
  doctor:{n:'전문의 선생님',d:'"선생님" 소리가 이제 익숙해요.'},
+ spouseLook:{n:'얼굴 보고 결혼한 사람',d:'싸워도 얼굴을 보면 화가 풀려요.'},
+ spouseRich:{n:'결혼으로 팔자 핀 사람',d:'결혼 한 번으로 계층 이동. 명절은 3박 4일이에요.'},
+ spouseKind:{n:'다정한 사람과 사는 사람',d:'통장은 평범해도 집에 오면 편해요.'},
+ spouseNo:{n:'결정사 VIP 대기 회원',d:'눈은 높고, 상대 눈은 더 높았어요.'},
  dink:{n:'딩크 부부',d:'둘이서 여행 다니는 게 제일 좋아요.'},
  parent:{n:'육아 전쟁 중',d:'주말엔 키즈카페 출근이에요.'},
  solo:{n:'행복한 1인 가구',d:'혼자여도 완벽한 저녁이에요.'},
@@ -1659,12 +1663,12 @@ function showPicker(slot){
 }
 function showChoice(def,onDone,later){
   const title=typeof def.title==='function'?def.title():def.title, desc=typeof def.desc==='function'?def.desc():def.desc;
-  openSheet(`${def.art?`<div class="scene">${def.art}</div>`:''}<span class="label">${esc(S.name)} · ${S.phase==='adult'?def.ages||'':T().label}</span><h2 class="sheet-title">${esc(title)}</h2><p class="lead">${esc(desc)}</p>
-    <div class="col">${def.opts.map((o,i)=>`<button class="opt" data-o="${i}" ${(typeof o.dis==='function'?o.dis():o.dis)?'disabled':''}><strong>${esc(o.l)}</strong>${o.s?`<small>${esc(o.s)}</small>`:''}${o.p!=null?`<div class="fit"><div class="bar"><b style="width:${Math.round(o.p*100)}%"></b></div><span class="num tiny">${Math.round(o.p*100)}%</span></div>`:''}</button>`).join('')}</div>
+  openSheet(`${def.art?`<div class="scene">${def.art}</div>`:''}<span class="label">${esc(S.name)} · ${S.phase==='adult'?def.ages||'':T().label}</span><h2 class="sheet-title">${esc(title)}</h2><p class="lead"${def.pre?' style="white-space:pre-line"':''}>${esc(desc)}</p>
+    <div class="col">${def.opts.map((o,i)=>`<button class="opt" data-o="${i}" ${(typeof o.dis==='function'?o.dis():o.dis)?'disabled':''}><strong>${esc(o.l)}</strong>${o.s?`<small${o.pre?' style="white-space:pre-line"':''}>${esc(o.s)}</small>`:''}${o.p!=null?`<div class="fit"><div class="bar"><b style="width:${Math.round(o.p*100)}%"></b></div><span class="num tiny">${Math.round(o.p*100)}%</span></div>`:''}</button>`).join('')}</div>
     ${later?'<button class="btn ghost" id="later">나중에 정하기</button>':''}`);
   document.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{
     const o=def.opts[+b.dataset.o];if(typeof o.dis==='function'?o.dis():o.dis)return;
-    if(def.confirm&&!def._ok){openSheet(`${def.art?`<div class="scene">${def.art}</div>`:''}<span class="label">${esc(S.name)} · 결정 확인</span><h2 class="sheet-title">${esc(o.l)}</h2><p class="lead">${esc(def.confirmMsg||'인생을 바꾸는 선택이에요. 이걸로 할까요?')}</p>${o.s?`<div class="result">${esc(o.s)}${o.p!=null?`<span class="fx">성공 확률 ${Math.round(o.p*100)}%</span>`:''}</div>`:o.p!=null?`<div class="result">성공 확률 ${Math.round(o.p*100)}%</div>`:''}<button class="btn" id="cf-yes">이걸로 결정</button><button class="btn ghost" id="cf-no">다시 고르기</button>`);
+    if(def.confirm&&!def._ok&&!o.noConfirm){openSheet(`${def.art?`<div class="scene">${def.art}</div>`:''}<span class="label">${esc(S.name)} · 결정 확인</span><h2 class="sheet-title">${esc(o.l)}</h2><p class="lead">${esc(def.confirmMsg||'인생을 바꾸는 선택이에요. 이걸로 할까요?')}</p>${o.s?`<div class="result"${o.pre?' style="white-space:pre-line"':''}>${esc(o.s)}${o.p!=null?`<span class="fx">성공 확률 ${Math.round(o.p*100)}%</span>`:''}</div>`:o.p!=null?`<div class="result">성공 확률 ${Math.round(o.p*100)}%</div>`:''}<button class="btn" id="cf-yes">이걸로 결정</button><button class="btn ghost" id="cf-no">다시 고르기</button>`);
       $('cf-no').onclick=()=>showChoice(def,onDone,later);
       $('cf-yes').onclick=()=>{const d2={...def,_ok:true,opts:[o]};showChoice(d2,onDone,later);document.querySelector('[data-o="0"]').click()};return}
     const r=o.run();
@@ -2025,7 +2029,7 @@ function chapters(){
      {l:'유행 디저트 가게 창업',s:'다음 유행만 맞히면 대박',run:()=>{const p=(st.sens*.5+st.luck*.3+st.soc*.2)/110+(S.flags.dzkSell?.15:0);if(chance(p)){A.asset+=25000;A.flags.dzk=1;A.job='디저트 가게 사장';A.jobId='owner';A.sal=Math.max(A.sal,9000);A.outfit='chef';return {t:'오픈런 줄이 골목을 돌았어요. 2호점을 냈어요.',fx:'자산 +2억 5천만'}}A.asset=Math.max(0,A.asset-3000);A.happy-=6;return {t:'유행이 6개월 만에 끝났어요. 폐업 신고를 했어요.',fx:'자산 -3천만'}}}]},
    {key:'career',ages:'33–35세',title:A.jobId&&CAREER[A.jobId]?`${A.job}, 그다음은?`:'서른셋의 갈림길',desc:A.jobId&&CAREER[A.jobId]?`${A.job} 8년 차. 같은 일을 해도 어디로 가느냐에 따라 인생이 갈려요.`:'일도 인생도 방향을 정할 때예요.',confirm:true,confirmMsg:'커리어의 방향을 정해요. 이 길로 갈까요?',opts:careerOpts()},
    {key:'love',ages:'35세',title:'서른다섯의 사랑',confirm:true,confirmMsg:'평생을 정하는 선택이에요. 이걸로 할까요?',desc:A.partner?'오래 만난 사람이 있어요.':'주변에서 하나둘 결혼해요.',opts:[
-     {l:A.partner?'결혼한다':'소개팅 · 결혼까지',s:'스드메 비용 각오',run:()=>{if(!A.partner&&!chance((st.charm*.4+st.soc*.4+st.luck*.2)/100+.1))return (A.happy-=5,{t:'소개팅 12번. 아직 인연을 못 만났어요.',fx:'행복↓'});if(S.flags.hakpok&&R()<.4){A.partner=null;A.happy-=15;A.flags.hakpokOut=1;return {t:'상견례 직전, 상대 가족이 내 학폭 기록을 알게 됐어요. 결혼이 없던 일이 됐어요.',fx:'파혼'}}A.partner='married';A.asset-=3500;A.happy+=8;if(R()<.55){A.flags.kid=1;A.asset-=1500;return {t:'결혼하고 아이가 생겼어요. 주말엔 키즈카페 출근이에요.',fx:'자산 -5천만 · 행복↑'}}A.flags.dink=1;return {t:'결혼했어요. 둘이서 1년에 세 번 여행 가요.',fx:'자산 -3,500만 · 행복↑'}}},
+     {l:A.partner?'결혼 상대를 정한다':'소개팅 · 결혼까지',s:'외모 · 재력 · 성격 중 무엇을 볼까요?',noConfirm:true,run:()=>({subDef:spouseDef()})},
      {l:'혼자가 좋다',s:'1인 가구의 완벽한 저녁',run:()=>{A.partner=null;A.happy+=6;A.asset+=1500;A.flags.solo=1;return {t:'고양이 한 마리와 완벽한 저녁을 보내요.',fx:'행복↑ 자산↑'}}},
      {l:'연애만 길게',s:'',run:()=>{A.partner=A.partner||'dating';A.happy+=4;return {t:'결혼은 아직. 지금이 좋아요.',fx:'행복↑'}}}]}];
 }
@@ -2245,7 +2249,19 @@ const CAREER={
  writer:[{l:'드라마 작가 데뷔',s:'',p:.12,ok:{t:'미니시리즈 작가로 데뷔했어요.',job:'드라마 작가',sal:()=>rsal(10000,40000),happy:10},no:{t:'공모전 낙선 7번째.'}},{l:'메인 작가',s:'',p:.45,ok:{t:'예능 메인 작가가 됐어요.',salx:1.6},no:{t:'밀렸어요.'}}],
  reporter:[{l:'탐사보도 특종',s:'',p:.2,ok:{t:'특종 보도로 기자상을 받았어요.',happy:10,salx:1.1},no:{t:'기사가 데스크에서 잘렸어요.'}},{l:'대기업 홍보팀',s:'',p:.5,ok:{t:'대기업 홍보팀으로 옮겼어요.',job:'대기업 홍보 차장',salx:1.4,happy:2},no:{t:'떨어졌어요.'}},{l:'앵커 도전',s:'',p:.1,ok:{t:'주말 뉴스 앵커가 됐어요.',job:'뉴스 앵커',salx:1.3},no:{t:'떨어졌어요.'}}],
  anchor:[{l:'메인 뉴스',s:'',p:.25,ok:{t:'9시 뉴스 메인 앵커가 됐어요.',salx:1.4,happy:8},no:{t:'밀렸어요.'}},{l:'프리 선언',s:'',p:.4,ok:{t:'프리랜서 방송인이 됐어요. 행사 하나에 천만 원.',job:'프리랜서 방송인',sal:()=>rsal(15000,40000)},no:{t:'섭외가 안 들어왔어요.',salx:.4,happy:-10}}],
- youtuber:[{l:'구독자 100만',s:'',p:()=>clamp(.08+S.st.charm/400+S.st.luck/400,.06,.35),ok:{t:'구독자 100만. 실버버튼 옆에 골드버튼이 생겼어요.',sal:()=>rsal(30000,80000),happy:8},no:{t:'구독자 2만에서 멈췄어요.'}},{l:'MCN 계약',s:'',p:.4,ok:{t:'MCN과 계약했어요.',salx:1.4},no:{t:'수익 배분이 이상했어요.'}},{l:'채널 접고 취업',s:'',p:.5,ok:{t:'영상 편집 경력으로 회사에 들어갔어요.',job:'영상 편집자',sal:()=>rsal(3200,4200)},no:{t:'경력으로 안 쳐 줬어요.'}}],
+ youtuber:[{l:'구독자 100만',s:'',p:()=>clamp(.08+S.st.charm/400+S.st.luck/400,.06,.35),ok:{t:'구독자 100만. 실버버튼 옆에 골드버튼이 생겼어요.',sal:()=>rsal(30000,80000),happy:8},no:{t:'구독자 2만에서 멈췄어요.'}},{l:'MCN 계약',s:'',p:.4,ok:{t:'MCN과 계약했어요.',salx:1.4},no:{t:'수익 배분이 이상했어요.'}},{l:'채널 접고 취업',s:'',p:.5,ok:{t:'영상 편집 경력으로 회사에 들어갔어요.',job:'영상 편집자',sal:()=>rsal(3200,4200)},no:{t:'경력으로 안 쳐 줬어요.'}},
+  {l:'장르 전향',s:'먹방 · 게임 · 지식 · 브이로그 · 운동 · 뉴스 숏츠 중 선택',genre:[
+   {l:'먹방 유튜버',s:'하루 1만 칼로리 · 매력 · 운',p:()=>clamp(.2+S.st.charm/300+S.st.luck/400,.15,.6),ok:{t:'라면 10봉 먹방이 1,200만 뷰를 찍었어요. 광고 문의가 밀려와요. 대신 건강검진 결과가 무서워요.',job:'먹방 유튜버',salx:1.8,health:-10},no:{t:'위가 따라 주지 않았어요. 3분 만에 배불러서 편집할 게 없어요.',salx:.8,health:-4}},
+   {l:'게임 스트리머',s:'생방송 후원 · 피지컬 · 입담',p:()=>clamp(.2+S.st.soc/300+S.st.luck/400,.15,.6),ok:{t:'신작 게임 첫날 방송에 동시 시청자 3만 명. 별풍선이 쏟아져요.',job:'게임 스트리머',to:'streamer',salx:1.5,happy:4},no:{t:'하루 12시간 켜 놔도 시청자가 7명이에요. 그중 2명은 엄마 아빠예요.',salx:.7,happy:-6}},
+   {l:'지식 · 교육 채널',s:'지력이 높을수록 유리 · 강연 섭외',p:()=>clamp(.12+S.st.int/220,.12,.65),ok:{t:'"10분 만에 이해하는 경제" 시리즈가 대박. 대학 강연과 책 출간 제안이 들어와요.',job:'지식 크리에이터',salx:1.6,happy:6},no:{t:'자료 조사에 1주일, 조회수는 800. 댓글에 "틀린 내용 있음" 지적만 달려요.',salx:.8}},
+   {l:'브이로그',s:'일상 공개 · 매력',p:()=>clamp(.25+S.st.charm/350,.2,.6),ok:{t:'자취방 브이로그가 공감을 얻었어요. 협찬 받은 커피를 마시며 촬영해요.',job:'브이로거',salx:1.25,happy:8},no:{t:'일상을 다 보여 줬더니 악플도 일상이 됐어요. 집 위치까지 털렸어요.',salx:.8,happy:-10}},
+   {l:'운동 · 헬스 채널',s:'체력이 높을수록 유리 · 바디 프로필',p:()=>clamp(.12+S.st.phy/220,.12,.65),ok:{t:'"직장인 홈트 30일" 챌린지가 유행했어요. 단백질 브랜드 모델이 됐어요.',job:'피트니스 유튜버',salx:1.5,health:10},no:{t:'바디 프로필 찍고 3주 만에 요요가 왔어요. 그 영상이 제일 잘 됐어요.',salx:.85,health:-3}},
+   {l:'10년 전 뉴스 숏츠',s:'유튜브 · 인스타 · 틱톡 동시 업로드 · 감각 · 운',p:()=>clamp(.2+S.st.sens/350+S.st.luck/350,.18,.6),ok:{t:'"10년 전 오늘" 숏츠가 세 플랫폼에서 동시에 터졌어요. 영상 하나로 수익이 세 군데서 들어와요.',job:'뉴스 숏츠 크리에이터',salx:1.7,happy:6},no:{t:'방송사 저작권 신고로 영상 30개가 내려갔어요. 채널에 경고 2회가 쌓였어요.',salx:.75,happy:-6}}]},
+  {l:'자체 브랜드 런칭',s:'굿즈 · 밀키트 · 재고 리스크',p:()=>clamp(.2+S.st.sens/400+S.st.luck/400,.15,.5),ok:{t:'구독자 이름을 딴 밀키트가 홈쇼핑 완판. 채널보다 브랜드 매출이 더 커졌어요.',job:'크리에이터 겸 브랜드 대표',salx:2.2,asset:8000},no:{t:'굿즈 5천 개를 찍었는데 300개 팔렸어요. 창고 임대료가 나가요.',asset:-6000,happy:-10}},
+  {l:'방송국 · 예능 진출',s:'고정 출연 · 매력 · 인맥',p:()=>clamp(.08+S.st.charm/350+S.st.soc/400,.08,.45),ok:{t:'예능 고정 패널이 됐어요. 이제 "유튜버 출신 방송인"으로 소개돼요.',job:'예능 방송인',salx:1.6,happy:8},no:{t:'파일럿 1회 출연 후 편성이 무산됐어요. 방송 분량은 4초였어요.',happy:-6}},
+  {l:'숏츠 · 해외 채널 확장',s:'영어 자막 · 글로벌 조회수',p:()=>clamp(.15+S.st.int/400+S.st.luck/350,.12,.5)+(S.flags.abroad?.1:0),ok:{t:'영어 자막을 단 숏츠가 해외에서 터졌어요. 구독자 70%가 외국인이에요. 달러로 수익이 들어와요.',job:'글로벌 크리에이터',salx:1.9},no:{t:'번역비만 나가고 해외 반응은 없었어요.',asset:-1500,salx:.95}},
+  {l:'MCN 차리기',s:'다른 유튜버를 키우는 대표',p:()=>clamp(.12+S.st.soc/300+S.st.int/500,.1,.5),ok:{t:'신인 크리에이터 20명을 키우는 MCN 대표가 됐어요. 이제 영상은 안 찍고 계약서를 봐요.',job:'MCN 대표',salx:1.8,asset:3000},no:{t:'키운 유튜버들이 뜨자마자 계약 해지를 요구했어요. 소송비만 남았어요.',asset:-5000,happy:-12}},
+  {l:'번아웃 휴식 · 잠정 은퇴',s:'"잠시 쉬겠습니다" 공지',p:.5,ok:{t:'6개월 쉬고 돌아왔더니 구독자들이 "기다렸어요" 댓글을 달아 줬어요. 업로드는 주 1회로 줄였어요.',salx:.7,happy:16,health:8},no:{t:'쉬는 동안 알고리즘이 나를 잊었어요. 복귀 영상 조회수 1,200.',salx:.4,happy:4,health:6}}],
  hair:[{l:'청담동 원장',s:'',p:.25,ok:{t:'청담동 샵 원장이 됐어요. 연예인 손님이 와요.',job:'청담동 헤어 원장',sal:()=>rsal(15000,30000)},no:{t:'동네 샵에 남았어요.'}},{l:'호주 워킹 헤어',s:'',p:.4,ok:{t:'시드니 살롱에서 일해요.',salx:1.4,happy:6},no:{t:'비자가 안 나왔어요.'}}],
  nail:[{l:'네일 브랜드',s:'',p:.3,ok:{t:'네일 스티커 브랜드가 대박 났어요.',salx:2.2,flag:'biz'},no:{t:'접었어요.',flag:'bizFail'}},{l:'네일 학원 강사',s:'',p:.6,ok:{t:'네일 학원 강사가 됐어요.',salx:1.1,health:4},no:{t:'자리가 없었어요.'}}],
  petgroom:[{l:'반려동물 호텔 창업',s:'',p:.45,ok:{t:'펫 호텔이 예약 꽉 찼어요.',salx:2,flag:'biz'},no:{t:'접었어요.',flag:'bizFail'}},{l:'반려동물 유튜버',s:'',p:.3,ok:{t:'강아지 미용 영상 구독자 50만.',salx:2},no:{t:'반응이 없었어요.'}}],
@@ -2386,7 +2402,7 @@ const BIZ_CAREER=[{l:'2호점 · 확장',s:'대출 2억',p:()=>clamp(.35+S.st.lu
  {l:'지금처럼 운영',s:'',p:1,ok:{t:'단골이 늘었어요. 사장의 삶에 익숙해졌어요.',salx:1.1}}];
 // 직업이 없거나 커리어가 없는 경우의 기본 갈림길
 function careerOpts(){
-  const A=S.ad,st=S.st,id=A.jobId;const list=A.flags.biz&&!A.flags.bizFail?BIZ_CAREER:(CAREER[id]||[]);const base=list.map(b=>({l:b.l,s:b.s,p:Math.min(1,(typeof b.p==='function'?b.p():b.p)+.05),run:()=>careerRun(b)}));
+  const A=S.ad,st=S.st,id=A.jobId;const list=A.flags.biz&&!A.flags.bizFail?BIZ_CAREER:(CAREER[id]||[]);const cp=b=>Math.min(1,(typeof b.p==='function'?b.p():b.p)+.05);const base=list.map(b=>b.genre?{l:b.l,s:b.s,noConfirm:true,run:()=>({subDef:{title:'어떤 채널로 바꿀까요?',desc:'장르마다 필요한 능력치가 달라요. 성공하면 채널 이름이 바뀌어요.',confirmMsg:'채널의 방향을 바꿔요. 이 장르로 갈까요?',opts:b.genre.map(g=>({l:g.l,s:g.s,p:cp(g),run:()=>careerRun(g)}))}})}:{l:b.l,s:b.s,p:cp(b),run:()=>careerRun(b)});
   const gen=[];
   if(A.sal>0&&!A.flags.fire)gen.push({l:'지금 자리에서 버틴다',s:'연차 · 호봉',run:()=>{A.sal=Math.round(A.sal*1.12);A.happy+=2;return {t:'연차가 쌓였어요. 연봉이 조금 올랐어요.',fx:'연봉 12%↑'}}});
   if(['corp','it','fin','civil','air'].includes(jg()))gen.push({l:'조용한 퇴사',s:'시킨 것만 정시에',run:()=>{A.happy+=10;A.health+=5;A.flags.quiet=1;return {t:'6시 1분엔 이미 지하철이에요. 저녁이 생겼어요.',fx:'행복↑'}}});
@@ -2399,7 +2415,7 @@ function careerOpts(){
 function careerRun(b){
   const A=S.ad,p=(typeof b.p==='function'?b.p():b.p)+(jg()==='farm'?(REG().farm||0):0),ok=R()<Math.min(1,p+.05),e=ok?b.ok:(b.no||{t:'잘 안 됐어요.'});const before=A.sal,parts=[];
   if(e.to){const keepName=e.job;setJob(e.to);if(keepName)A.job=keepName}else if(e.job)A.job=e.job;
-  if(e.sal)A.sal=e.sal();else if(e.salx!=null)A.sal=Math.round(A.sal*e.salx);
+  if(e.sal)A.sal=e.sal();else if(e.salx!=null)A.sal=Math.round((e.salx>1?Math.max(A.sal,2400):A.sal)*e.salx);
   if(e.asset)A.asset+=e.asset;if(e.happy)A.happy+=e.happy;if(e.health)A.health+=e.health;if(e.flag)A.flags[e.flag]=1;
   A.spec=ok?b.l:null;A.flags[ok?'specOk':'specFail']=1;
   if(A.sal!==before)parts.push(A.sal>0?`연봉 ${man(before)} → ${man(A.sal)}`:'수입 없음');if(e.asset)parts.push(`자산 ${e.asset>0?'+':'-'}${man(Math.abs(e.asset))}`);if(e.health&&e.health<=-8)parts.push('건강↓');
@@ -2463,7 +2479,7 @@ const SHOCKS=[
  {art:'hospital',need:A=>S.fam.some(x=>x==='엄마'||x==='아빠'),t:'',run:A=>{const p=S.fam.includes('아빠')?'아버지':'어머니';A.shockT=`${p}가 암 진단을 받으셨어요. 간병비와 병원비로 매달 300만 원이 나가요.`;A.asset-=3600;A.happy-=14;A.flags.care=1}},
  {art:'jeonse',need:A=>!A.house&&A.asset>6000,t:'전세 만기인데 집주인이 연락을 안 받아요. 알고 보니 같은 건물 세입자 전부가 전세사기 피해자였어요.',run:A=>{A.asset-=8000;A.happy-=20;A.flags.jeonseScam=1}},
  {art:'phishing',need:A=>A.asset>1000,t:'',run:A=>{if(chance(.5-S.st.int/300)){const l=Math.min(2500,Math.round(A.asset*.3));A.asset-=l;A.happy-=10;A.shockT=`"서울중앙지검 수사관입니다." 시키는 대로 앱을 깔았다가 ${man(l)}이 빠져나갔어요.`}else{A.shockT='"서울중앙지검 수사관입니다." 보이스피싱이란 걸 눈치채고 끊었어요. 심장이 아직도 뛰어요.';A.happy-=2}}},
- {art:'breakup',need:A=>!!A.partner,t:'',run:A=>{if(A.partner==='married'){A.shockT='배우자가 이혼을 요구했어요. 재산 분할로 자산이 반으로 줄었어요.';A.asset=Math.round(A.asset/2);A.partner=null;A.flags.divorced=1;A.happy-=22}else if(A.ch>=3){A.shockT='결혼 날짜까지 잡았는데 상견례 자리에서 크게 싸우고 파혼했어요. 예식장 계약금은 못 돌려받았어요.';A.partner=null;A.asset-=500;A.flags.pahon=1;A.happy-=18}else{A.shockT='3년 사귄 사람에게 이별 통보를 받았어요. 카톡 프로필 사진이 바뀌어 있었어요.';A.partner=null;A.happy-=14;A.flags.breakup=1}}},
+ {art:'breakup',need:A=>!!A.partner,t:'',run:A=>{if(A.partner==='married'&&A.spouse==='kind'&&R()<.6){A.shockT='크게 싸우고 이혼 이야기까지 나왔어요. 다음 날 배우자가 먼저 미역국을 끓여 놓고 기다렸어요.';A.happy-=4;return}if(A.partner==='married'&&A.spouse==='rich'){A.shockT='배우자가 이혼을 요구했어요. 혼전 계약서 때문에 받은 신혼집은 돌려줘야 했어요.';A.asset=Math.round(A.asset*.4);A.partner=null;A.flags.divorced=1;A.happy-=22;return}if(A.partner==='married'){A.shockT='배우자가 이혼을 요구했어요. 재산 분할로 자산이 반으로 줄었어요.';A.asset=Math.round(A.asset/2);A.partner=null;A.flags.divorced=1;A.happy-=22}else if(A.ch>=3){A.shockT='결혼 날짜까지 잡았는데 상견례 자리에서 크게 싸우고 파혼했어요. 예식장 계약금은 못 돌려받았어요.';A.partner=null;A.asset-=500;A.flags.pahon=1;A.happy-=18}else{A.shockT='3년 사귄 사람에게 이별 통보를 받았어요. 카톡 프로필 사진이 바뀌어 있었어요.';A.partner=null;A.happy-=14;A.flags.breakup=1}}},
  {art:'gapjil',need:A=>A.sal>0&&!/대표|은퇴|N잡|프리랜서|사장|공동창업자/.test(A.job||'')&&!['문화예술'].includes(jobCat(A))&&!['youtuber','smartstore','itfree','insurer','realtor','streamer','tattoo'].includes(A.jobId),t:'',run:A=>{A.happy-=14;A.health-=6;A.flags.gapjil=1;A.shockT=({army:'새로 온 대대장이 주말마다 비상소집을 걸어요. 관사에서도 잠이 안 와요.',police:'새로 온 서장이 실적 압박을 해요. 단속 건수 미달이라고 회의 때마다 이름이 불려요.',fire:'새 센터장이 출동 일지를 트집 잡아요. 동료 둘이 휴직했어요.',med:'선배의 태움이 시작됐어요. 인수인계 때마다 손이 떨려요.',edu:'한 학부모가 매일 밤 10시에 전화를 해요. 교권보호위원회에 갔지만 달라진 게 없어요.',civil:'악성 민원인이 매일 찾아와 소리를 질러요. 녹취 버튼을 누르는 게 습관이 됐어요.',food:'새로 온 헤드셰프가 접시를 던져요.',sport:'새 감독이 나를 엔트리에서 뺐어요. 이유는 말해 주지 않아요.',stage:'회사가 스케줄을 하루 20시간 잡아요. 정산 내역은 보여 주지 않아요.'})[jg()]||'새로 온 팀장이 매일 회의실에서 소리를 질러요. 새벽 1시에도 메신저가 와요.'}},
  {art:'margin',need:A=>A.flags.invest,t:'주가가 폭락했어요. 신용으로 산 주식이 반대매매로 강제 청산됐어요. 계좌가 깡통이 됐어요.',run:A=>{A.asset=Math.round(A.asset*.35);A.happy-=18}},
  {art:'aicut',need:A=>A.sal>0&&A.jobId&&JOBMAP[A.jobId]&&JOBMAP[A.jobId][6]>=.45&&!A.flags.airesk,t:'',run:A=>{const r=JOBMAP[A.jobId][6];if(R()<r){A.shockT=`회사가 AI 에이전트를 도입했어요. 팀 12명 중 9명이 정리됐고, 나도 그중 하나였어요. ${A.job} 일의 ${Math.round(r*100)}%를 AI가 한대요. 연봉을 깎고 겨우 재취업했어요.`;A.sal=Math.round(A.sal*.55);A.flags.aireplaced=1;A.happy-=16}else{A.shockT='회사가 AI 에이전트를 도입했어요. 옆자리 동료 둘이 사라졌어요. 나는 일단 살아남았어요.';A.happy-=6}}},
@@ -2574,7 +2590,7 @@ function adultChat(key,r){
   else if(key==='firstjob'){if(A.sal>0){L.push(...famLines(FAMJ[jg()]||FAMJ.corp,2));L.push(pick([['아빠','첫 월급으로 내복은 안 사 줘도 된다'],['엄마','첫 월급은 적금부터 들어라'],['할머니','첫 월급 타면 할미한테 전화해라'],['동생','첫 월급 기념 치킨 쏴']]))}else L.push(...famLines(FAMJ.none,3))}
   else if(key==='career'){L.push(...famLines(r&&r.ok===false?[['엄마','괜찮아. 다음에 또 기회 있어'],['아빠','아빠도 그때 떨어졌다'],['동생','{sib} 기죽지 마'],['할머니','밥 잘 먹고 다녀라']]:A.flags.fire?[['엄마','회사를 그만둔다고?'],['아빠','…부럽다'],['동생','용돈 줘']]:[['엄마',`우리 ${S.name} ${A.job||''} 됐다고 교회에 다 말했다`],['아빠','역시 내 새끼'],['할머니','할미가 오래 살고 볼 일이다'],['동생','{sib} 이제 밥 좀 사'],['큰이모','○○ 소식 들었다. 대단하다']],2))}
   else if(key==='money'){L.push(...(f.coinDown?[['아빠','코인 얘기는 이 집에서 금지다'],['엄마','그 돈이면 차가 한 대다']]:f.coinUp?[['동생','{sib} 나도 좀 사줘'],['엄마','당장 팔아라 당장']]:f.youngkkeul?[['아빠','이자 감당 되겠니'],['엄마','집들이는 언제 하니']]:f.cheongyak?[['엄마','청약 당첨이라니!!!'],['할머니','조상님이 도왔다']]:f.totoWin?[['동생','{sib} 갑자기 차 바꿨네?'],['엄마','그 돈 어디서 났니']]:f.crime?[['엄마','…'],['아빠','벌금은 아빠가 보태 줄게. 다신 하지 마']]:f.biz?[['엄마','사장님 됐네'],['삼촌','삼촌 가게도 좀 봐 줘']]:f.bizFail?[['아빠','장사가 그렇게 어렵다'],['엄마','빚은 같이 갚자']]:f.lotto1?[['엄마','이거 꿈 아니지?'],['큰이모','○○야 이모 좀 빌려 줄 수 있니']]:[['엄마','차곡차곡 모으는 게 최고야'],['아빠','아빠는 그때 삼성전자 살걸']]).map(([w,t])=>[w,t.replace('○○',S.name).replace('{sib}',sib())]))}
-  else if(key==='love'){L.push(...famLines(A.partner==='married'?[['엄마','결혼식 날 울었다'],['할머니','증손주 보고 싶다'],['아빠','잘 살아라'],['동생','축의금 내가 제일 많이 냈다']]:f.solo?[['엄마','고양이 사진 그만 보내라'],['동생','고양이가 나보다 대접받음'],['할머니','혼자 사는 것도 괜찮다']]:f.hakpokOut?[['엄마','…'],['아빠','다 지난 일인데']]:[['엄마','언제 데려올 거니'],['아빠','천천히 해라'],['큰이모','이모가 소개해 줄까?']],2))}
+  else if(key==='love'){L.push(...famLines(A.partner==='married'&&A.spouse==='rich'?[['엄마','사돈댁 앞에서 기죽지 마라'],['아빠','…우리도 뭘 좀 보태야 하나'],['동생','차 뭐임?? 나도 태워 줘'],['할머니','부잣집이라고 눈치 보지 말고']]:A.partner==='married'&&A.spouse==='look'?[['엄마','사진보다 실물이 낫더라'],['동생','결혼식 사진 내 프사로 해도 됨?'],['큰이모','2세는 걱정 없겠다'],['아빠','얼굴 뜯어먹고 살 거냐']]:A.partner==='married'&&A.spouse==='kind'?[['엄마',S.gender==='여'?'사위로 최고다':'며느리로 최고다'],['아빠','저런 사람 놓치면 안 된다'],['할머니','명절에 설거지를 먼저 하더라'],['동생','나도 저런 사람 만나고 싶다']]:A.partner==='married'?[['엄마','결혼식 날 울었다'],['할머니','증손주 보고 싶다'],['아빠','잘 살아라'],['동생','축의금 내가 제일 많이 냈다']]:f.solo?[['엄마','고양이 사진 그만 보내라'],['동생','고양이가 나보다 대접받음'],['할머니','혼자 사는 것도 괜찮다']]:f.hakpokOut?[['엄마','…'],['아빠','다 지난 일인데']]:[['엄마','언제 데려올 거니'],['아빠','천천히 해라'],['큰이모','이모가 소개해 줄까?']],2))}
   return L.length?L:[['엄마','수고했어']];
 }
 function finalTitle(A){
@@ -2614,16 +2630,65 @@ function finalTitle(A){
   if(f.godsaeng)all.push('godsaeng');
   if(happy>=85&&A.sal<5000)all.push('jangthink');
   if(f.therapy)all.push('healing');
+  if(f.spouseRich)all.push('spouseRich');
+  if(f.spouseLook)all.push('spouseLook');
+  if(f.spouseKind)all.push('spouseKind');
   if(f.dink)all.push('dink');
   if(f.kid)all.push('parent');
   if((A.booms||[]).length>=2)all.push('boomerang');
   if(f.solo)all.push('solo');
   if(f.care)all.push('caregiver');
   if(f.specFail&&!f.bizFail)all.push('specfail');
+  if(f.spouseNo&&A.partner!=='married')all.push('spouseNo');
   if(A.house==='부모님 집'&&A.partner!=='married')all.push('kangaroo');
   if(!all.length)all.push('average');
   return all;
 }
+
+// ----- 배우자 선택 -----
+const SP_TYPES={
+ look:{n:'외모',tag:'얼굴 천재',jobs:['모델 출신 브랜드 매니저','승무원','배우 지망생 출신 PD','필라테스 강사'],want:'재력',col:'#E0679A'},
+ rich:{n:'재력',tag:'금수저',jobs:['건물주 2세','대기업 회장 손주','강남 병원장 자녀','IT 회사 공동창업자'],want:'외모',col:'#C9962B'},
+ kind:{n:'성격',tag:'다정한 사람',jobs:['초등학교 선생님','사회복지사','동네 약사','소방관'],want:'성격',col:'#3D9A6B'}};
+function myMarket(){const A=S.ad,st=S.st;
+  const look=clamp(st.charm*.85+A.health*.15,0,100);
+  const rich=clamp((100-krTop(Math.max(1,A.sal||1),KR_SAL))*.6+(100-krTop(Math.max(1,A.asset),KR_NET))*.4,0,100);
+  const kind=clamp(st.soc*.5+st.mnt*.3+A.happy*.2,0,100);
+  return {look,rich,kind}}
+function spouseP(t){const m=myMarket();let s,p;
+  if(t==='look'){s=Math.max(m.rich,m.look*.9);p=(s-40)/55}
+  else if(t==='rich'){s=Math.max(m.look,m.rich*.9);p=(s-45)/55}
+  else {s=m.kind;p=(s-25)/55}
+  if(S.flags.hakpok)p-=.1;return clamp(p,.05,t==='kind'?.92:.85)}
+const stars=n=>'★'+n;
+function spouseCands(){const A=S.ad;if(A._cands)return A._cands;
+  const all=S.gender==='여'?BOYS:GIRLS;if(A.partner==='dating'&&!A.loverName)A.loverName=S.dating||pick(all);
+  const pool=shuffle(all.filter(x=>x!==A.loverName&&x!==S.exDating&&x!==S.crushCand));
+  const lo=()=>1+Math.floor(R()*3);
+  A._cands=['look','rich','kind'].map((t,i)=>({t,name:pool[i],job:pick(SP_TYPES[t].jobs),st:{look:t==='look'?5:lo(),rich:t==='rich'?5:lo(),kind:t==='kind'?5:lo()}}));
+  return A._cands}
+function marryRun(c,longTime){const A=S.ad;return ()=>{
+  const ex=A.partner==='dating'&&!longTime?(A.loverName||'연인'):null;
+  if(ex)A.partner=null;
+  if(S.flags.hakpok&&R()<.3){A.partner=null;A.happy-=15;A.flags.hakpokOut=1;return {t:`상견례 직전, ${nm(c.name)}네 가족이 내 학폭 기록을 알게 됐어요. 결혼이 없던 일이 됐어요.`,fx:'파혼'}}
+  const p=longTime?.88:spouseP(c.t);
+  if(!chance(p)){A.happy-=ex?14:7;A.flags.spouseNo=1;
+    const t=c.t==='look'?`${nm(c.name)}의 답장: "좋은 분인데… 제가 원하는 미래랑은 좀 달라요." 인스타 스토리에 포르쉐가 올라왔어요.`:c.t==='rich'?`${nm(c.name)}의 부모님과 식사를 했어요. 다음 날 "집안끼리 맞지 않는 것 같다"는 연락이 왔어요.`:`${nm(c.name)}가 말했어요. "같이 있으면 내가 자꾸 지쳐." 마음이 아파요.`;
+    return {t:t+(ex?' 몰래 만나던 걸 들켜서 오래 만난 연인과도 끝났어요.':''),fx:ex?'환승 실패 · 행복↓↓':'거절 · 행복↓'}}
+  A.partner='married';A.spouse=longTime?'long':c.t;A.spouseName=c.name;A.spouseJob=c.job;A.asset-=3500;
+  let t='',fx='';
+  if(longTime){A.happy+=10;t=`오래 만난 ${nm(c.name)}와 결혼했어요. 서로 다 아는 사이라 신혼 싸움도 시시해요.`;fx='자산 -3,500만 · 행복↑'}
+  else if(c.t==='look'){A.happy+=9;A.asset-=1200;A.flags.spouseLook=1;t=`${c.job} ${nm(c.name)}와 결혼했어요. 결혼식장에서 하객들이 신랑 신부 얼굴만 이야기했어요. 꾸밈비가 꽤 들어요.`;fx='자산 -4,700만 · 행복↑'}
+  else if(c.t==='rich'){const g=Math.round(30000+R()*50000);A.asset+=g+3500;A.happy+=3;A.flags.spouseRich=1;t=`${c.job} ${nm(c.name)}와 결혼했어요. 신혼집과 결혼 비용 전부를 ${S.gender==='여'?'시댁':'처가'}에서 해 주셨어요. 대신 명절은 3박 4일이에요.`;fx=`자산 +${man(g)} · 눈치↑`}
+  else {A.happy+=16;A.health=clamp(A.health+5,0,100);A.flags.spouseKind=1;t=`${c.job} ${nm(c.name)}와 결혼했어요. 퇴근하면 "오늘 고생했어"라는 말이 기다려요.`;fx='자산 -3,500만 · 행복↑↑ · 건강↑'}
+  if(ex)t=`오래 만난 ${nm(ex)}와 헤어지고 ${t}`;
+  if(R()<.55){A.flags.kid=1;A.asset-=1500;t+=c.t==='look'?' 아이가 생겼는데, 얼굴이 배우자를 닮아서 다행이래요.':c.t==='rich'?' 아이가 생겼어요. 돌잔치를 호텔에서 했어요.':' 아이가 생겼어요. 주말엔 키즈카페 출근이에요.';fx+=' · 아이 1명'}else A.flags.dink=1;
+  return {t,fx}}}
+function spouseDef(){const A=S.ad,m=myMarket(),cs=spouseCands();
+  const me=`나의 매력\n외모 ${stars(Math.max(1,Math.round(m.look/20)))} · 재력 ${stars(Math.max(1,Math.round(m.rich/20)))} · 성격 ${stars(Math.max(1,Math.round(m.kind/20)))}`;
+  const opts=cs.map(c=>{const T=SP_TYPES[c.t];return {l:`${c.name} · ${c.job}`,s:`외모 ${stars(c.st.look)} · 재력 ${stars(c.st.rich)} · 성격 ${stars(c.st.kind)}\n${T.tag} · 상대는 내 ${eul(T.want)} 가장 봐요`,pre:1,p:spouseP(c.t),run:marryRun(c,false)}});
+  if(A.partner==='dating'){const nmx=A.loverName;opts.unshift({l:`오래 만난 ${nmx}`,s:'외모 · 재력 · 성격 모두 무난\n서로를 너무 잘 알아요',pre:1,p:.88,run:marryRun({t:'long',name:nmx,job:''},true)})}
+  return {title:A.partner==='dating'?'누구와 결혼할까요?':'결혼정보회사가 3명을 소개했어요',pre:1,desc:me+'\n내가 가진 것과 상대가 원하는 것이 맞아야 성사돼요.',confirmMsg:'평생을 함께할 사람이에요. 이 사람으로 할까요?',opts}}
 // 대한민국 실제 분포 (상위 %, 만원). 연봉: 국세청 2023년 귀속 만근 근로자 근로소득 천분위(2025.11 공개). 상위 0.1% 경계와 하위 1%는 추정.
 // 순자산: 2025 가계금융복지조사(2025.3 기준) 가구 순자산. 10억↑ 11.8% · 3억↓ 57% · 상위 1% 하한 약 33억은 공개치, 나머지 구간은 추정.
 const KR_SAL=[[.1,70000],[1,21673],[10,10057],[20,7624],[50,4272],[80,2642],[90,2119],[99,700]];
@@ -2678,7 +2743,7 @@ function showFinal(){
   ls.del(KEY);
   const cut=(stage,mood,outfit,bg,cap)=>`<div><div class="ph">${avatarSVG({g:S.gender,stage,mood,outfit,look:lookNow(),skin:S.skin,num:S.num,bg})}</div><span>${cap}</span></div>`;
   const h=S.hist;
-  const text=`[한국에서 살아남기] ${S.name} · ${S.type} · ${REG().name}\n19세: ${PATHS[S.path19].n}${A.major?` (${A.major})`:''}\n35세: ${A.job||'무직'} · ${TITLES[main].n}\n연봉 ${A.sal?`${man(A.sal)} · 대한민국 ${salTop}`:'0원'}\n순자산 ${man(net)} · 대한민국 ${net>0?assetTop:'하위권'} · ${A.house} · ${A.partner==='married'?'기혼':A.partner?'연애 중':'솔로'}\n행복도 ${Math.round(A.happy)} · 건강 ${Math.round(A.health)}`;
+  const text=`[한국에서 살아남기] ${S.name} · ${S.type} · ${REG().name}\n19세: ${PATHS[S.path19].n}${A.major?` (${A.major})`:''}\n35세: ${A.job||'무직'} · ${TITLES[main].n}\n연봉 ${A.sal?`${man(A.sal)} · 대한민국 ${salTop}`:'0원'}\n순자산 ${man(net)} · 대한민국 ${net>0?assetTop:'하위권'} · ${A.house} · ${A.partner==='married'?`기혼${A.spouse&&A.spouse!=='long'?`(${SP_TYPES[A.spouse].n}파)`:''}`:A.partner?'연애 중':'솔로'}\n행복도 ${Math.round(A.happy)} · 건강 ${Math.round(A.health)}`;
   dock(null);
   $('app').innerHTML=`<div class="top"><div class="brand">한국에서 살아남기</div><span class="tiny">35세 성적표</span></div>
   <section class="card col" style="gap:12px">
@@ -2698,7 +2763,7 @@ function showFinal(){
       <p class="tiny" style="margin:0">${A.sal?`중위 연봉(4,272만 원)의 <strong>${(A.sal/4272).toFixed(1)}배</strong>`:'중위 연봉(4,272만 원)까지 4,272만 원'} · ${net>=131000?'39세 이하 가구 상위 1%(13.1억) <strong>돌파</strong>':`39세 이하 상위 1%(13.1억)까지 ${man(131000-Math.max(net,0))}`}</p></div>
     <div class="money">
       <div><span>집</span><b style="font-size:20px">${esc(A.house)}</b><small>${A.debt?`대출 ${man(A.debt)}`:'대출 없음'}</small></div>
-      <div><span>가족</span><b style="font-size:20px">${A.partner==='married'?'기혼':A.partner?'연애 중':'솔로'}</b><small>${A.flags.kid?'아이 1명':A.flags.dink?'딩크':A.flags.solo?'고양이 1마리':'–'}</small></div>
+      <div><span>가족</span><b style="font-size:20px">${A.partner==='married'?'기혼':A.partner?'연애 중':'솔로'}</b><small>${A.spouse&&A.partner==='married'?(A.spouse==='long'?'오래 만난 연인':SP_TYPES[A.spouse].tag)+' · ':''}${A.flags.kid?'아이 1명':A.flags.dink?'딩크':A.flags.solo?'고양이 1마리':'–'}</small></div>
       <div><span>행복도</span><b class="num">${Math.round(A.happy)}</b><small>${A.happy>=80?'인생 만족':A.happy>=55?'그럭저럭':A.happy>=30?'버티는 중':'위험 신호'}</small></div>
       <div><span>건강</span><b class="num">${Math.round(A.health)}</b><small>${A.health>=85?'저속노화 성공':A.health>=55?'평범':'혈당 관리 필요'}</small></div>
     </div>
