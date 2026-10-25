@@ -257,6 +257,14 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .fourcut .cap{grid-column:1/-1;text-align:center;color:#E8E8EA;font-family:var(--f-hand);font-size:18px}
 .titles{display:flex;flex-wrap:wrap;gap:6px}
 .titles span{font-size:13px;font-weight:700;background:var(--soft);border-radius:999px;padding:4px 10px}
+.dxbar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.dxbar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.dxf{display:flex;gap:6px;overflow-x:auto;padding:10px 0 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.dxf::-webkit-scrollbar{display:none}
+.dxc{flex:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 11px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.dxc em{font-style:normal;color:var(--muted);margin-left:4px;font-weight:500}.dxc.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.dxc.on em{color:inherit;opacity:.8}
+.dxg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;max-height:276px;overflow-y:auto;padding:2px;overscroll-behavior:contain}
+.dxt{min-height:44px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;line-height:1.25;padding:5px 6px;cursor:pointer;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-align:center;word-break:normal;overflow-wrap:break-word}
+.dxt.got{color:var(--ink);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--card))}.dxt.lock{opacity:.6}.dxt.sel{outline:2px solid var(--accent);outline-offset:-1px}.dxt[hidden]{display:none}
+.dxd{margin-top:8px;border-radius:10px;background:var(--soft);padding:9px 11px;font-size:12.5px;color:var(--muted);line-height:1.5}.dxd.on{color:var(--ink)}.dxd strong{display:block;font-size:14px;margin-bottom:2px}.dxd span{display:block;color:var(--muted)}
 .dex{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .dex div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;background:var(--paper);min-width:0}
 .dex div{display:flex;flex-direction:column;gap:3px}.dex div strong{font-size:14px;line-height:1.3}.dex div span{font-size:12px;line-height:1.45;color:var(--muted)}.dex div.got{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 7%,var(--card))}.dex div.lock{color:var(--muted)}.dex div.lock strong{color:var(--muted)}
@@ -1571,10 +1579,19 @@ function chatHTML(room,lines){if(S&&S.fam)lines=lines.filter(([w])=>!["Mom","Dad
 // ===================== 시작 화면 =====================
 const PATH_DESC={med:"Top Suneung plus volunteer exp. Med boards in 6 years.",kaist:"Top-tier pick with science exp",snu:"Top Suneung. Pick any major.",law:"Top-tier law route for debaters",police:"Stamina, grit and Suneung: police officer track",army:"Officer track on stamina and grit",yk:"Top Suneung. Pick your major.",mid:"High Suneung. Solid start.",nurse:"Volunteer exp to a lifetime license",cs:"The classic dev path via coding exp",crew:"Charm and network take you to the skies",inseoul:"College in Seoul",local:"College near Seoul or regional",retake:"One more try: Suneung retake school",artm:"Passed art audition",musicm:"Passed vocal · band audition",actm:"Passed acting audition",pe:"Passed sports test",arts_f:"Failed the audition, retaking for arts",idol:"Cleared auditions, monthly evals and the debut team",gamer:"Top 0.1% ranked to pro team",youtuber:"A teen blessed by the algorithm",webtoon:"Amateur webtoon to official series",pro:"Drafted pro straight out of high school",startup:"₩10M a month in sales in high school",idol_f:"Debut next time, maybe",gamer_f:"Ranked player stuck at the pro gate",yt_f:"Channel stalled at 3K subs",webtoon_f:"No series deal yet",pro_f:"College team instead of the draft",startup_f:"First business folded, trying again",dev:"Hired by a big corp out of high school",chef:"Certified cook, now in a hotel kitchen",civil:"Passed Grade-9 civil service at 19",farm:"A farm started on a youth startup grant",dev_f:"Starting at a small IT company",chef_f:"Starting as the kitchen rookie at a local diner",civil_f:"One more year of civil service exam prep",farm_f:"Learning the ropes on your parents' farm",burnout:"Stress overload: graduating to take a break"};
 function dexBlock(name,order,got,nm,ds){
-  const have=order.filter(id=>got.includes(id)).length;
-  return `<details class="card col"><summary class="between" style="cursor:pointer;list-style:none"><span class="label">${name}</span><span class="tiny num">${have} / ${order.length} · Expand</span></summary>
-    <div class="dex" style="margin-top:10px">${order.map(id=>got.includes(id)?`<div class="got"><strong>${esc(nm(id))}</strong><span>${esc(ds?ds(id):'')}</span></div>`:`<div class="lock"><strong>???</strong><span>Not met yet</span></div>`).join('')}</div></details>`;
+  const have=order.filter(id=>got.includes(id)).length,pct=Math.round(have/Math.max(1,order.length)*100);
+  const isJob=order===JOB_ORDER,cat=id=>isJob?JOBMAP[id][2]:'';
+  const cats=isJob?[...new Set(order.map(cat))]:[];
+  const chip=(f,l,n)=>`<button type="button" class="dxc${f==='all'?' on':''}" data-f="${esc(f)}">${esc(l)}<em>${n}</em></button>`;
+  const chips=[chip('all',"All",order.length),chip('got',"Unlocked",have),chip('lock',"Locked",order.length-have)].concat(cats.map(c=>chip('c:'+c,c,order.filter(id=>cat(id)===c).length))).join('');
+  const tiles=order.map(id=>{const g=got.includes(id);return `<button type="button" class="dxt ${g?'got':'lock'}" data-c="${esc(cat(id))}" data-n="${esc(g?nm(id):'???')}" data-d="${esc(g?(ds?ds(id):''):"Not discovered yet")}">${esc(g?nm(id):'???')}</button>`}).join('');
+  return `<details class="card col dexbox"><summary class="between" style="cursor:pointer;list-style:none"><span class="label">${esc(name)}</span><span class="tiny num">${have} / ${order.length} · ${pct}%</span></summary>
+    <div class="dxbar"><i style="width:${pct}%"></i></div><div class="dxf">${chips}</div><div class="dxg">${tiles}</div><div class="dxd">${esc("Tap a tile to see details")}</div></details>`;
 }
+function dexFilter(box,f){box.querySelectorAll('.dxc').forEach(b=>b.classList.toggle('on',b.dataset.f===f));box.querySelectorAll('.dxt').forEach(t=>{const ok=f==='all'||(f==='got'&&t.classList.contains('got'))||(f==='lock'&&t.classList.contains('lock'))||(f.startsWith('c:')&&t.dataset.c===f.slice(2));t.hidden=!ok})}
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target:null;if(!t)return;
+  const c=t.closest('.dxc');if(c){dexFilter(c.closest('.dexbox'),c.dataset.f);return}
+  const x=t.closest('.dxt');if(x){const box=x.closest('.dexbox');box.querySelectorAll('.dxt.sel').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');const d=box.querySelector('.dxd');d.innerHTML=`<strong>${esc(x.dataset.n)}</strong><span>${esc(x.dataset.d)}</span>`;d.classList.add('on')}});
 const LANG_SW=()=>/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="../" lang="ko">한국어</a><a class="langsw" href="../zh/" lang="zh-CN">中文</a></span>':'';
 function renderIntro(){
   dock(null);
