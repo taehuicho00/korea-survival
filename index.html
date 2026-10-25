@@ -2827,7 +2827,7 @@ function rankBoxHTML(){if(!RANK_URL)return '';return `<div class="rankbox"><div 
 function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{
   const nick=($('rknick').value||'').trim().slice(0,10)||'익명';ls.set(NKEY,nick);b.disabled=true;b.textContent='등록 중…';const out=$('rkres');out.innerHTML='<p class="tiny" style="margin:0">랭킹 서버에 올리는 중…</p>';
   try{const j=await rankApi(null,payloadFn(nick));b.textContent='등록 완료';$('rknick').disabled=true;
-    const row=(k,lab)=>{const r=j.rank[k],p=Math.max(1,Math.round(r/j.total*100));return `<div class="rkline"><span>${lab}</span><b class="num">${r}위</b><small>${j.total}명 중 · 상위 ${p}%</small></div>`};
+    const row=(k,lab)=>{const r=j.rank[k],p=Math.max(1,Math.round(r/j.total*100));return `<div class="rkline"><span>${lab}</span><b class="num">${r}위</b><small>${j.total}명 중 · ${r===1?'현재 1등':`상위 ${p}%`}</small></div>`};
     out.innerHTML=`<div class="rkres">${row('sal','연봉')}${row('net','순자산')}${row('happy','행복도')}</div><button class="btn ghost small" id="rkview">전체 랭킹 TOP 3 보기</button>`;$('rkview').onclick=()=>showRanking('score',j.id)}
   catch(e){b.disabled=false;b.textContent='다시 시도';out.innerHTML=`<p class="tiny" style="margin:0">${rkFailMsg()}</p>`}}}
 let RK_CACHE=null;
