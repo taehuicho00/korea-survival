@@ -247,6 +247,8 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .rkrow{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:9px 10px;font:inherit}
 .rkrow.me{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .rkn{font-size:18px;text-align:center;font-weight:800}.rkm{display:flex;flex-direction:column;min-width:0}.rkm small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkv{font-weight:800;font-size:14px}
+.tops{flex:none;align-self:flex-start;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.langsw.don{cursor:pointer;font:inherit;font-size:13px;font-weight:700}
+.donbox{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:12px 14px;margin:12px 0}.donbox small{display:block;color:var(--muted);font-size:12px}.donbox b{font-size:18px;letter-spacing:.3px}
 .langs{flex:none;align-self:flex-start;display:flex;gap:6px}
 .langsw{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;text-decoration:none}
 .fourcut{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:#1E1E22;border-radius:14px;padding:10px 10px 8px}
@@ -1592,7 +1594,16 @@ function dexFilter(box,f){box.querySelectorAll('.dxc').forEach(b=>b.classList.to
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('click',e=>{const t=e.target&&e.target.closest?e.target:null;if(!t)return;
   const c=t.closest('.dxc');if(c){dexFilter(c.closest('.dexbox'),c.dataset.f);return}
   const x=t.closest('.dxt');if(x){const box=x.closest('.dexbox');box.querySelectorAll('.dxt.sel').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');const d=box.querySelector('.dxd');d.innerHTML=`<strong>${esc(x.dataset.n)}</strong><span>${esc(x.dataset.d)}</span>`;d.classList.add('on')}});
-const LANG_SW=()=>/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="../" lang="ko">한국어</a><a class="langsw" href="../zh/" lang="zh-CN">中文</a></span>':'';
+const DON={bank:"Woori Bank",no:'1002-345-569373',raw:'1002345569373'};
+const donOn=()=>typeof document!=='undefined'&&!/^(zh|en)/.test((document.documentElement&&document.documentElement.lang)||'');
+const LANG_SW=()=>'<span class="tops">'+(donOn()?"<button type=\"button\" class=\"langsw don\" id=\"donbtn\">☕ Support</button>":'')+(/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="../" lang="ko">한국어</a><a class="langsw" href="../zh/" lang="zh-CN">中文</a></span>':'')+'</span>';
+function showDonate(){const mob=typeof navigator!=='undefined'&&/Android|iPhone|iPad/i.test(navigator.userAgent||'');
+  openSheet(`<span class="label">Support the dev</span><h2 class="sheet-title">Buy me a coffee ☕</h2><p class="lead">${esc("Enjoyed it? Buy the dev a coffee.")}</p>
+  <div class="donbox"><div><small>${esc(DON.bank)}</small><b class="num">${esc(DON.no)}</b></div><button type="button" class="btn small" id="doncopy">${esc("Copy account")}</button></div>
+  ${mob?`<a class="btn" id="dontoss" href="supertoss://send?amount=0&bank=${encodeURIComponent(DON.bank)}&accountNo=${DON.raw}&origin=qr">${esc("Send via Toss")}</a>`:''}
+  <button type="button" class="btn ghost" id="donx">${esc("Close")}</button>`);
+  $('donx').onclick=closeSheet;$('doncopy').onclick=async()=>{const b=$('doncopy');try{await navigator.clipboard.writeText(DON.bank+' '+DON.raw);b.textContent="Copied"}catch(e){b.textContent=DON.raw}}}
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('click',e=>{const t=e.target&&e.target.closest&&e.target.closest('#donbtn');if(t)showDonate()});
 function renderIntro(){
   dock(null);
   const saved=ls.get(KEY,null),rec=ls.get(RKEY,[]),dx=ls.get(DKEY,[]),tx=ls.get(TKEY,[]);
