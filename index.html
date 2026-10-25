@@ -247,7 +247,7 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .rkrow{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:9px 10px;font:inherit}
 .rkrow.me{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .rkn{font-size:18px;text-align:center;font-weight:800}.rkm{display:flex;flex-direction:column;min-width:0}.rkm small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rkv{font-weight:800;font-size:14px}
-.tops{flex:none;align-self:flex-start;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}@media (max-width:440px){.dont{display:none}.tops{gap:4px}.tops .langsw{padding:5px 9px;font-size:12px}}.langsw.don{cursor:pointer;font:inherit;font-size:13px;font-weight:700}
+.tops{flex:none;align-self:flex-start;display:flex;flex-direction:column;align-items:stretch;gap:6px}.tops .langs{align-self:stretch}.tops .langs .langsw{flex:1;text-align:center}.tops .don{text-align:center;padding:5px 10px;font-size:12px}.langsw.don{cursor:pointer;font:inherit;font-size:13px;font-weight:700}
 .donbox{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:12px 14px;margin:12px 0}.donbox small{display:block;color:var(--muted);font-size:12px}.donbox b{font-size:18px;letter-spacing:.3px}
 .langs{flex:none;align-self:flex-start;display:flex;gap:6px}
 .langsw{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;text-decoration:none}
@@ -1595,7 +1595,7 @@ if(typeof document!=='undefined'&&document.addEventListener)document.addEventLis
   const x=t.closest('.dxt');if(x){const box=x.closest('.dexbox');box.querySelectorAll('.dxt.sel').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');const d=box.querySelector('.dxd');d.innerHTML=`<strong>${esc(x.dataset.n)}</strong><span>${esc(x.dataset.d)}</span>`;d.classList.add('on')}});
 const DON={bank:'우리은행',no:'1002-345-569373',raw:'1002345569373'};
 const donOn=()=>typeof document!=='undefined'&&!/^(zh|en)/.test((document.documentElement&&document.documentElement.lang)||'');
-const LANG_SW=()=>'<span class="tops">'+(donOn()?'<button type="button" class="langsw don" id="donbtn" aria-label="개발자 후원">☕<span class="dont"> 후원</span></button>':'')+(/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="zh/" lang="zh-CN">中文</a><a class="langsw" href="en/" lang="en">EN</a></span>':'')+'</span>';
+const LANG_SW=()=>'<span class="tops">'+(/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="zh/" lang="zh-CN">中文</a><a class="langsw" href="en/" lang="en">EN</a></span>':'')+(donOn()?'<button type="button" class="langsw don" id="donbtn">개발자 후원하기</button>':'')+'</span>';
 function showDonate(){const mob=typeof navigator!=='undefined'&&/Android|iPhone|iPad/i.test(navigator.userAgent||'');
   openSheet(`<span class="label">개발자 후원하기</span><h2 class="sheet-title">커피 한 잔 사 주기 ☕</h2><p class="lead">${esc('재밌게 즐기셨다면 개발자에게 커피 한 잔 부탁드려요. 후원금은 새 직업 · 이벤트 업데이트에 쓰여요.')}</p>
   <div class="donbox"><div><small>${esc(DON.bank)}</small><b class="num">${esc(DON.no)}</b></div><button type="button" class="btn small" id="doncopy">${esc('계좌 복사')}</button></div>
