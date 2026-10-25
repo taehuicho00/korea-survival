@@ -3112,12 +3112,14 @@ function rankPayload(A,net,main,titles,score,nick){
   return {nick,score,net,sal:A.sal,happy:Math.round(A.happy),dex:ls.get(TKEY,[]).length,title:TITLES[main].n,job:A.job||"无业",region:REG().name,data:JSON.stringify(life)}}
 function rankBoxHTML(){if(!RANK_URL)return '';return `<div class="rankbox"><div class="label">挑战总排行榜</div><p class="tiny" style="margin:0">昵称和结果（职业 · 称号 · 四格）会公开在排行榜上。</p>
   <div class="row"><input id="rknick" maxlength="10" value="${esc(ls.get(NKEY,null)||S.name)}" aria-label="排行榜昵称" autocomplete="off"><button class="btn small" id="rkgo">登上排行榜</button></div><div id="rkres" aria-live="polite"></div></div>`}
-function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{
+function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{S.rkDone=1;save();
   const nick=($('rknick').value||'').trim().slice(0,10)||"匿名";ls.set(NKEY,nick);b.disabled=true;b.textContent="登记中…";const out=$('rkres');out.innerHTML="<p class=\"tiny\" style=\"margin:0\">正在上传到排行榜服务器…</p>";
   try{const j=await rankApi(null,payloadFn(nick));b.textContent="登记完成";$('rknick').disabled=true;
     const row=(k,lab)=>{const r=j.rank[k],p=Math.max(1,Math.round(r/j.total*100));return `<div class="rkline"><span>${lab}</span><b class="num">第${r}名</b><small>共${j.total}人 · ${r===1?"当前第1名":`前${p}%`}</small></div>`};
     out.innerHTML=`<div class="rkres">${row('sal',"年薪")}${row('net',"净资产")}${row('happy',"幸福度")}</div><button class="btn ghost small" id="rkview">查看总排行榜TOP 3</button>`;$('rkview').onclick=()=>showRanking('score',j.id)}
-  catch(e){b.disabled=false;b.textContent="重试";out.innerHTML=`<p class="tiny" style="margin:0">${rkFailMsg()}</p>`}}}
+  catch(e){S.rkDone=0;save();b.disabled=false;b.textContent="重试";out.innerHTML=`<p class="tiny" style="margin:0">${rkFailMsg()}</p>`}};
+  if(S.rkDone){b.disabled=true;b.textContent="登记完成";$('rknick').disabled=true;return}
+  if(/github\.io$/.test(location.hostname))b.onclick()}
 let RK_CACHE=null;
 async function showRanking(tab,mine){
   tab=tab||'score';openSheet(`<span class="label">总排行榜</span><h2 class="sheet-title">加载中…</h2><p class="lead">稍等一下。</p>`);

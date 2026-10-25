@@ -3112,12 +3112,14 @@ function rankPayload(A,net,main,titles,score,nick){
   return {nick,score,net,sal:A.sal,happy:Math.round(A.happy),dex:ls.get(TKEY,[]).length,title:TITLES[main].n,job:A.job||"Unemployed",region:REG().name,data:JSON.stringify(life)}}
 function rankBoxHTML(){if(!RANK_URL)return '';return `<div class="rankbox"><div class="label">Take on the global ranking</div><p class="tiny" style="margin:0">Your nickname and results (job · title · photo strip) go public.</p>
   <div class="row"><input id="rknick" maxlength="10" value="${esc(ls.get(NKEY,null)||S.name)}" aria-label="Ranking nickname" autocomplete="off"><button class="btn small" id="rkgo">Submit</button></div><div id="rkres" aria-live="polite"></div></div>`}
-function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{
+function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{S.rkDone=1;save();
   const nick=($('rknick').value||'').trim().slice(0,10)||"Anonymous";ls.set(NKEY,nick);b.disabled=true;b.textContent="Submitting…";const out=$('rkres');out.innerHTML="<p class=\"tiny\" style=\"margin:0\">Uploading to the ranking server…</p>";
   try{const j=await rankApi(null,payloadFn(nick));b.textContent="Submitted";$('rknick').disabled=true;
     const row=(k,lab)=>{const r=j.rank[k],p=Math.max(1,Math.round(r/j.total*100));return `<div class="rkline"><span>${lab}</span><b class="num">#${r}</b><small>of ${j.total} · ${r===1?"Currently #1":`Top ${p}%`}</small></div>`};
     out.innerHTML=`<div class="rkres">${row('sal',"Salary")}${row('net',"Net worth")}${row('happy',"Happiness")}</div><button class="btn ghost small" id="rkview">See overall top 3</button>`;$('rkview').onclick=()=>showRanking('score',j.id)}
-  catch(e){b.disabled=false;b.textContent="Try again";out.innerHTML=`<p class="tiny" style="margin:0">${rkFailMsg()}</p>`}}}
+  catch(e){S.rkDone=0;save();b.disabled=false;b.textContent="Try again";out.innerHTML=`<p class="tiny" style="margin:0">${rkFailMsg()}</p>`}};
+  if(S.rkDone){b.disabled=true;b.textContent="Submitted";$('rknick').disabled=true;return}
+  if(/github\.io$/.test(location.hostname))b.onclick()}
 let RK_CACHE=null;
 async function showRanking(tab,mine){
   tab=tab||'score';openSheet(`<span class="label">Global ranking</span><h2 class="sheet-title">Loading…</h2><p class="lead">Hang tight.</p>`);

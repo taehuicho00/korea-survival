@@ -3104,12 +3104,14 @@ function rankPayload(A,net,main,titles,score,nick){
   return {nick,score,net,sal:A.sal,happy:Math.round(A.happy),dex:ls.get(TKEY,[]).length,title:TITLES[main].n,job:A.job||'무직',region:REG().name,data:JSON.stringify(life)}}
 function rankBoxHTML(){if(!RANK_URL)return '';return `<div class="rankbox"><div class="label">전체 랭킹에 도전하기</div><p class="tiny" style="margin:0">닉네임과 결과(직업 · 칭호 · 4컷)가 랭킹에 공개돼요.</p>
   <div class="row"><input id="rknick" maxlength="10" value="${esc(ls.get(NKEY,null)||S.name)}" aria-label="랭킹 닉네임" autocomplete="off"><button class="btn small" id="rkgo">랭킹 등록</button></div><div id="rkres" aria-live="polite"></div></div>`}
-function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{
+function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{S.rkDone=1;save();
   const nick=($('rknick').value||'').trim().slice(0,10)||'익명';ls.set(NKEY,nick);b.disabled=true;b.textContent='등록 중…';const out=$('rkres');out.innerHTML='<p class="tiny" style="margin:0">랭킹 서버에 올리는 중…</p>';
   try{const j=await rankApi(null,payloadFn(nick));b.textContent='등록 완료';$('rknick').disabled=true;
     const row=(k,lab)=>{const r=j.rank[k],p=Math.max(1,Math.round(r/j.total*100));return `<div class="rkline"><span>${lab}</span><b class="num">${r}위</b><small>${j.total}명 중 · ${r===1?'현재 1등':`상위 ${p}%`}</small></div>`};
     out.innerHTML=`<div class="rkres">${row('sal','연봉')}${row('net','순자산')}${row('happy','행복도')}</div><button class="btn ghost small" id="rkview">전체 랭킹 TOP 3 보기</button>`;$('rkview').onclick=()=>showRanking('score',j.id)}
-  catch(e){b.disabled=false;b.textContent='다시 시도';out.innerHTML=`<p class="tiny" style="margin:0">${rkFailMsg()}</p>`}}}
+  catch(e){S.rkDone=0;save();b.disabled=false;b.textContent='다시 시도';out.innerHTML=`<p class="tiny" style="margin:0">${rkFailMsg()}</p>`}};
+  if(S.rkDone){b.disabled=true;b.textContent='등록 완료';$('rknick').disabled=true;return}
+  if(/github\.io$/.test(location.hostname))b.onclick()}
 let RK_CACHE=null;
 async function showRanking(tab,mine){
   tab=tab||'score';openSheet(`<span class="label">전체 랭킹</span><h2 class="sheet-title">불러오는 중…</h2><p class="lead">잠시만요.</p>`);
