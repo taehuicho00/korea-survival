@@ -236,7 +236,8 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .money small{font-size:12px;color:var(--muted)}
 .rankbox{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--paper)}
 .rankbox .row input{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;color:var(--ink)}
-.rkres{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.rksec{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.rkres{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
 .rkline{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .rkline span{font-size:12px;color:var(--muted)}.rkline b{font-size:22px}.rkline small{font-size:11.5px;color:var(--muted)}
 .rktabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
@@ -1550,7 +1551,7 @@ function renderIntro(){
   </section>
   ${saved&&saved.v>=5&&(saved.phase==='home'||saved.phase==='adult')?`<div class="card between"><div><div class="label">이어하기</div><strong>${esc(saved.name)}</strong> <span class="muted">· ${saved.phase==='adult'?'어른 편':TURNS[saved.t].label}</span></div><button class="btn small" id="resume">이어서</button></div>`:''}
   <button class="btn" id="new">새 인생 시작하기</button>
-  ${RANK_URL?'<button class="btn ghost" id="rank">🏆 친구들 랭킹 보기</button>':''}
+  ${RANK_URL?'<button class="btn ghost" id="rank">🏆 전체 랭킹 보기</button>':''}
   ${dexBlock('35세 칭호 도감',TITLE_ORDER,tx,id=>TITLES[id].n,id=>TITLES[id].d)}
   ${dexBlock('19세 진로 도감',PATH_ORDER,dx,id=>PATHS[id].n,id=>PATH_DESC[id]||'')}
   ${dexBlock('35세 직업 도감',JOB_ORDER,ls.get(JKEY,[]),id=>JOBMAP[id][1],id=>`${JOBMAP[id][2]} · 연봉 ${rng(JOBMAP[id][3],JOBMAP[id][4])}${(JOB_REAL[id]||'')?' · '+JOB_REAL[id].split('.')[0]:''}`)}
@@ -2819,29 +2820,28 @@ function rankPayload(A,net,main,titles,score,nick){
     fam:(A.partner==='married'?'기혼':A.partner?'연애 중':'솔로')+(A.spouse&&A.partner==='married'?' · '+(A.spouse==='long'?'오래 만난 연인':SP_TYPES[A.spouse].tag):'')+(A.flags.kid?' · 아이 1명':''),
     sc:score,log:(A.log||[]).slice(0,8)};
   return {nick,score,net,sal:A.sal,happy:Math.round(A.happy),dex:ls.get(TKEY,[]).length,title:TITLES[main].n,job:A.job||'무직',region:REG().name,data:JSON.stringify(life)}}
-function rankBoxHTML(){if(!RANK_URL)return '';return `<div class="rankbox"><div class="label">친구들과 랭킹 겨루기</div><p class="tiny" style="margin:0">닉네임과 결과(직업 · 칭호 · 4컷)가 랭킹에 공개돼요.</p>
+function rankBoxHTML(){if(!RANK_URL)return '';return `<div class="rankbox"><div class="label">전체 랭킹에 도전하기</div><p class="tiny" style="margin:0">닉네임과 결과(직업 · 칭호 · 4컷)가 랭킹에 공개돼요.</p>
   <div class="row"><input id="rknick" maxlength="10" value="${esc(ls.get(NKEY,null)||S.name)}" aria-label="랭킹 닉네임" autocomplete="off"><button class="btn small" id="rkgo">랭킹 등록</button></div><div id="rkres" aria-live="polite"></div></div>`}
 function bindRankBox(payloadFn){const b=$('rkgo');if(!b)return;b.onclick=async()=>{
   const nick=($('rknick').value||'').trim().slice(0,10)||'익명';ls.set(NKEY,nick);b.disabled=true;b.textContent='등록 중…';const out=$('rkres');out.innerHTML='<p class="tiny" style="margin:0">랭킹 서버에 올리는 중…</p>';
   try{const j=await rankApi(null,payloadFn(nick));b.textContent='등록 완료';$('rknick').disabled=true;
     const row=(k,lab)=>{const r=j.rank[k],p=Math.max(1,Math.round(r/j.total*100));return `<div class="rkline"><span>${lab}</span><b class="num">${r}위</b><small>${j.total}명 중 · 상위 ${p}%</small></div>`};
-    out.innerHTML=`<div class="rkres">${row('score','인생 점수')}${row('net','순자산')}${row('sal','연봉')}${row('happy','행복도')}</div><button class="btn ghost small" id="rkview">전체 랭킹 보기</button>`;$('rkview').onclick=()=>showRanking('score',j.id)}
+    out.innerHTML=`<div class="rkres">${row('sal','연봉')}${row('net','순자산')}${row('happy','행복도')}</div><button class="btn ghost small" id="rkview">전체 랭킹 TOP 3 보기</button>`;$('rkview').onclick=()=>showRanking('score',j.id)}
   catch(e){b.disabled=false;b.textContent='다시 시도';out.innerHTML='<p class="tiny" style="margin:0">랭킹 서버에 연결하지 못했어요. 잠시 뒤 다시 눌러 주세요.</p>'}}}
 let RK_CACHE=null;
 async function showRanking(tab,mine){
-  tab=tab||'score';openSheet(`<span class="label">친구 랭킹</span><h2 class="sheet-title">불러오는 중…</h2><p class="lead">잠시만요.</p>`);
-  try{RK_CACHE=await rankApi('a=top')}catch(e){openSheet(`<span class="label">친구 랭킹</span><h2 class="sheet-title">연결 실패</h2><p class="lead">랭킹 서버에 연결하지 못했어요. 잠시 뒤 다시 열어 주세요.</p><button class="btn ghost" id="rkx">닫기</button>`);$('rkx').onclick=closeSheet;return}
+  tab=tab||'score';openSheet(`<span class="label">전체 랭킹</span><h2 class="sheet-title">불러오는 중…</h2><p class="lead">잠시만요.</p>`);
+  try{RK_CACHE=await rankApi('a=top')}catch(e){openSheet(`<span class="label">전체 랭킹</span><h2 class="sheet-title">연결 실패</h2><p class="lead">랭킹 서버에 연결하지 못했어요. 잠시 뒤 다시 열어 주세요.</p><button class="btn ghost" id="rkx">닫기</button>`);$('rkx').onclick=closeSheet;return}
   renderRanking(tab,mine)}
-function renderRanking(tab,mine){const j=RK_CACHE,T=RK_TABS.find(t=>t[0]===tab),list=j.top[tab]||[];
-  openSheet(`<span class="label">친구 랭킹 · 전체 ${j.total}명</span><h2 class="sheet-title">${T[1]} TOP 10</h2>
-  <div class="rktabs" role="tablist">${RK_TABS.map(t=>`<button role="tab" aria-selected="${t[0]===tab}" data-tab="${t[0]}">${t[1]}</button>`).join('')}</div>
-  <div class="rklist">${list.length?list.map((r,i)=>`<button class="rkrow${r.id===mine?' me':''}" data-id="${r.id}"><span class="rkn num">${i<3?['🥇','🥈','🥉'][i]:i+1}</span><span class="rkm"><strong>${esc(r.nick)}</strong><small>${esc(r.region)} 출신 · ${esc(r.job)} · ${esc(r.title)}</small></span><span class="rkv num">${T[2](r.v)}</span></button>`).join(''):'<p class="lead">아직 기록이 없어요. 첫 번째 주인공이 돼 보세요.</p>'}</div>
+function renderRanking(tab,mine){const j=RK_CACHE;
+  const sec=k=>{const T=RK_TABS.find(t=>t[0]===k),list=(j.top[k]||[]).slice(0,3);return `<div class="rksec"><div class="label">${T[1]} TOP 3</div>${list.length?list.map((r,i)=>`<button class="rkrow${r.id===mine?' me':''}" data-id="${r.id}"><span class="rkn">${['🥇','🥈','🥉'][i]}</span><span class="rkm"><strong>${esc(r.nick)}</strong><small>${esc(r.region)} 출신 · ${esc(r.job)} · ${esc(r.title)}</small></span><span class="rkv num">${T[2](r.v)}</span></button>`).join(''):'<p class="tiny" style="margin:0">아직 기록이 없어요.</p>'}</div>`};
+  openSheet(`<span class="label">전체 랭킹 · 참가 ${j.total}명</span><h2 class="sheet-title">명예의 전당</h2>
+  <div class="rklist">${['sal','net','happy'].map(sec).join('')}</div>
   <p class="tiny" style="margin:0">이름을 누르면 그 사람의 인생을 볼 수 있어요.</p><button class="btn ghost" id="rkx">닫기</button>`);
-  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>renderRanking(b.dataset.tab,mine));
   document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>showLife(+b.dataset.id,tab,mine));
   $('rkx').onclick=closeSheet}
 async function showLife(id,tab,mine){
-  openSheet(`<span class="label">친구 랭킹</span><h2 class="sheet-title">인생을 펼치는 중…</h2>`);
+  openSheet(`<span class="label">전체 랭킹</span><h2 class="sheet-title">인생을 펼치는 중…</h2>`);
   let d;try{const j=await rankApi('a=get&id='+id);d=JSON.parse(j.data)}catch(e){d=null}
   if(!d){openSheet(`<h2 class="sheet-title">불러오지 못했어요</h2><button class="btn ghost" id="rkb">랭킹으로</button>`);$('rkb').onclick=()=>renderRanking(tab,mine);return}
   const bgs=['#DDEFF8','#F3EAD6','#D9DEF0','#F7D9C0'],caps=['초등 · 10세','중2 · 15세','고3 · 19세','35세 · 지금'],ofs=['kid','uniform',d.o7||'uniform',d.o||'office'];
