@@ -2320,7 +2320,7 @@ function chapters(){
      {l:'코인 몰빵',s:'인생은 한 방',run:()=>{A.flags.invest=1;const save=A.sal*.3*4,base=A.asset+save,r=R()+st.luck/400;let m,t;
        if(r>.93){m=9;A.flags.coinUp=1;t='보유한 코인이 9배가 됐어요. 퇴사 각을 재기 시작했어요.'}else if(r>.75){m=2.2;t='2배 넘게 올랐어요. 손이 떨려서 팔았어요.'}else if(r>.45){m=.9;t='제자리걸음. 차트 보느라 잠을 못 잤어요.'}else{m=.25;A.flags.coinDown=1;A.happy-=10;t='상장폐지 공지를 봤어요. 4년 치 저축이 사라졌어요.'}
        A.asset=base*m;return {t,fx:`자산 ×${m}`}}},
-     {l:'매주 로또 5장',s:'4년 동안 매주. 언젠가는…',run:()=>{const save=A.sal*.3*4;A.asset+=save-100;const r=R();if(r<.007+st.luck/20000){A.asset+=200000;A.flags.lotto1=1;A.happy+=20;return {t:'토요일 밤 8시 45분. 번호 6개가 다 맞았어요. 로또 1등, 세금 떼고 20억이에요.',fx:'자산 +20억'}}if(r<.03){A.asset+=6000;return {t:'로또 2등! 6천만 원이 생겼어요.',fx:'자산 +6천만'}}if(r<.3)return {t:'5등만 열두 번. 로또값 100만 원 중에 40만 원을 돌려받았어요.',fx:'로또값 -60만'};return {t:'4년 동안 로또값 100만 원. 남은 건 종이 208장이에요.',fx:'로또값 -100만'}}},
+     {l:'매주 로또 5장',s:'4년 동안 매주. 언젠가는…',run:()=>{const save=A.sal*.3*4;A.asset+=save-100;const r=R();if(r<.004+st.luck/50000){A.asset+=200000;A.flags.lotto1=1;A.happy+=20;return {t:'토요일 밤 8시 45분. 번호 6개가 다 맞았어요. 로또 1등, 세금 떼고 20억이에요.',fx:'자산 +20억'}}if(r<.03){A.asset+=6000;return {t:'로또 2등! 6천만 원이 생겼어요.',fx:'자산 +6천만'}}if(r<.3)return {t:'5등만 열두 번. 로또값 100만 원 중에 40만 원을 돌려받았어요.',fx:'로또값 -60만'};return {t:'4년 동안 로또값 100만 원. 남은 건 종이 208장이에요.',fx:'로또값 -100만'}}},
      {l:'청약 넣기',s:'당첨되면 인생 역전',run:()=>{if(chance(.12+st.luck/300)){A.house='청약 당첨 아파트';A.flags.cheongyak=1;A.asset+=A.sal*.3*4+65000;A.debt+=35000;return {t:'경쟁률 312 대 1을 뚫고 당첨됐어요!',fx:'집 생김 · 순자산 +3억'}}A.asset+=A.sal*.3*4;return {t:'5번 넣어서 5번 떨어졌어요. 그래도 저축은 했어요.',fx:'자산 증가'}}},
      {l:'영끌해서 아파트',s:'지금 아니면 평생 못 산다',run:()=>{A.house='영끌 아파트';A.debt+=45000;const m=clamp(1.1+randn()*.3,.7,1.8);A.asset=A.asset-15000+A.sal*.15*4+60000*m;A.flags.youngkkeul=1;A.happy-=8;return {t:m>=1.2?'집값이 올랐어요. 이자는 무섭지만 웃음이 나요.':m>=.95?'집값은 그대로, 대출 이자도 그대로예요.':'집값이 떨어졌어요. 월급의 절반이 이자로 나가요.',fx:`집값 ${m>=1?'+':''}${Math.round((m-1)*100)}%`}}},
      {l:'불법 해외 토토로 한 방',s:S.flags.gambleWin?'고등학생 때 그 맛을 잊지 못했어요':'대박 · 쪽박 · 전과 중 하나',run:()=>{const save=A.sal*.3*4;A.asset+=save;A.flags.toto=1;const r=R()-st.luck/500-(S.flags.gambleWin?.04:0);
@@ -2809,7 +2809,7 @@ function afterChapter(key){
   const queue=[];
   if(['twenty','firstjob','money','career','love'].includes(key)&&R()<.25){const pool=SHOCKS.filter(x=>x.need(A));if(pool.length)queue.push('shock')}
   if(['firstjob','money','career'].includes(key)&&(A.booms||[]).length<2&&R()<.5&&pickBoom())queue.push('boom');
-  if(key!=='love'&&!A.flags.lotto1&&R()<.01+S.st.luck/12000)queue.push('windfall');
+  if(key!=='love'&&!A.flags.lotto1&&R()<.0003+S.st.luck/400000)queue.push('windfall');
   if(['money','love'].includes(key)&&!A.flags.parentHelp&&R()<(REG().parent||0))queue.push('parent');
   const next=()=>{
     const q=queue.shift();

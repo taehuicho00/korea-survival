@@ -2321,7 +2321,7 @@ function chapters(){
      {l:"梭哈币圈",s:"人生就是一把梭",run:()=>{A.flags.invest=1;const save=A.sal*.3*4,base=A.asset+save,r=R()+st.luck/400;let m,t;
        if(r>.93){m=9;A.flags.coinUp=1;t="手里的币涨了9倍。开始盘算怎么跑路辞职了。"}else if(r>.75){m=2.2;t="涨了一倍多。手抖着卖掉了。"}else if(r>.45){m=.9;t="原地踏步。盯K线盯到失眠。"}else{m=.25;A.flags.coinDown=1;A.happy-=10;t="看到了退市归零的公告。4年积蓄灰飞烟灭。"}
        A.asset=base*m;return {t,fx:`资产 ×${m}`}}},
-     {l:"每周买5注彩票",s:"4年，每周都买。万一呢…",run:()=>{const save=A.sal*.3*4;A.asset+=save-100;const r=R();if(r<.007+st.luck/20000){A.asset+=200000;A.flags.lotto1=1;A.happy+=20;return {t:"周六晚上8点45分。6个号码全中。彩票头奖，税后20亿。",fx:"资产 +20亿"}}if(r<.03){A.asset+=6000;return {t:"彩票二等奖！到手6千万韩元。",fx:"资产 +6千万"}}if(r<.3)return {t:"中了12次五等奖。花100万韩元买彩票，回本40万。",fx:"彩票钱 -60万"};return {t:"4年买彩票花了100万韩元。剩下208张废纸。",fx:"彩票钱 -100万"}}},
+     {l:"每周买5注彩票",s:"4年，每周都买。万一呢…",run:()=>{const save=A.sal*.3*4;A.asset+=save-100;const r=R();if(r<.004+st.luck/50000){A.asset+=200000;A.flags.lotto1=1;A.happy+=20;return {t:"周六晚上8点45分。6个号码全中。彩票头奖，税后20亿。",fx:"资产 +20亿"}}if(r<.03){A.asset+=6000;return {t:"彩票二等奖！到手6千万韩元。",fx:"资产 +6千万"}}if(r<.3)return {t:"中了12次五等奖。花100万韩元买彩票，回本40万。",fx:"彩票钱 -60万"};return {t:"4年买彩票花了100万韩元。剩下208张废纸。",fx:"彩票钱 -100万"}}},
      {l:"摇号买房",s:"中了就逆天改命",run:()=>{if(chance(.12+st.luck/300)){A.house="摇号中签的公寓";A.flags.cheongyak=1;A.asset+=A.sal*.3*4+65000;A.debt+=35000;return {t:"312比1的概率，被我摇中了！",fx:"有房了 · 净资产 +3亿"}}A.asset+=A.sal*.3*4;return {t:"摇了5次，5次落空。好歹钱是存下了。",fx:"资产增加"}}},
      {l:"掏空六个钱包买房",s:"现在不上车，这辈子都买不起",run:()=>{A.house="掏空六个钱包买的公寓";A.debt+=45000;const m=clamp(1.1+randn()*.3,.7,1.8);A.asset=A.asset-15000+A.sal*.15*4+60000*m;A.flags.youngkkeul=1;A.happy-=8;return {t:m>=1.2?"房价涨了。利息吓人，但嘴角压不住。":m>=.95?"房价没动，贷款利息也一分没少。":"房价跌了。工资一半拿去还利息。",fx:`房价 ${m>=1?'+':''}${Math.round((m-1)*100)}%`}}},
      {l:"非法外围赌球搏一把",s:S.flags.gambleWin?"高中尝到的甜头，至今难忘":"暴富 · 血亏 · 留案底，三选一",run:()=>{const save=A.sal*.3*4;A.asset+=save;A.flags.toto=1;const r=R()-st.luck/500-(S.flags.gambleWin?.04:0);
@@ -2810,7 +2810,7 @@ function afterChapter(key){
   const queue=[];
   if(['twenty','firstjob','money','career','love'].includes(key)&&R()<.25){const pool=SHOCKS.filter(x=>x.need(A));if(pool.length)queue.push('shock')}
   if(['firstjob','money','career'].includes(key)&&(A.booms||[]).length<2&&R()<.5&&pickBoom())queue.push('boom');
-  if(key!=='love'&&!A.flags.lotto1&&R()<.01+S.st.luck/12000)queue.push('windfall');
+  if(key!=='love'&&!A.flags.lotto1&&R()<.0003+S.st.luck/400000)queue.push('windfall');
   if(['money','love'].includes(key)&&!A.flags.parentHelp&&R()<(REG().parent||0))queue.push('parent');
   const next=()=>{
     const q=queue.shift();

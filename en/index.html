@@ -2321,7 +2321,7 @@ function chapters(){
      {l:"All in on crypto",s:"YOLO",run:()=>{A.flags.invest=1;const save=A.sal*.3*4,base=A.asset+save,r=R()+st.luck/400;let m,t;
        if(r>.93){m=9;A.flags.coinUp=1;t="Your crypto went 9x. You're drafting your resignation."}else if(r>.75){m=2.2;t="Up over 2x. Hands shaking, you sold."}else if(r>.45){m=.9;t="Flat. Lost sleep staring at charts."}else{m=.25;A.flags.coinDown=1;A.happy-=10;t="Saw the delisting notice. 4 years of savings, gone."}
        A.asset=base*m;return {t,fx:`Assets ×${m}`}}},
-     {l:"5 lottery tickets a week",s:"Every week for 4 years. Someday…",run:()=>{const save=A.sal*.3*4;A.asset+=save-100;const r=R();if(r<.007+st.luck/20000){A.asset+=200000;A.flags.lotto1=1;A.happy+=20;return {t:"Saturday, 8:45 PM. All six numbers hit. Lottery jackpot: ₩2B after tax.",fx:"Assets +₩2B"}}if(r<.03){A.asset+=6000;return {t:"Lottery 2nd prize! ₩60M richer.",fx:"Assets +₩60M"}}if(r<.3)return {t:"Twelve 5th-place wins. Got back ₩400K of the ₩1M you spent.",fx:"Tickets -₩600K"};return {t:"₩1M on tickets in 4 years. All you've got is 208 slips of paper.",fx:"Tickets -₩1M"}}},
+     {l:"5 lottery tickets a week",s:"Every week for 4 years. Someday…",run:()=>{const save=A.sal*.3*4;A.asset+=save-100;const r=R();if(r<.004+st.luck/50000){A.asset+=200000;A.flags.lotto1=1;A.happy+=20;return {t:"Saturday, 8:45 PM. All six numbers hit. Lottery jackpot: ₩2B after tax.",fx:"Assets +₩2B"}}if(r<.03){A.asset+=6000;return {t:"Lottery 2nd prize! ₩60M richer.",fx:"Assets +₩60M"}}if(r<.3)return {t:"Twelve 5th-place wins. Got back ₩400K of the ₩1M you spent.",fx:"Tickets -₩600K"};return {t:"₩1M on tickets in 4 years. All you've got is 208 slips of paper.",fx:"Tickets -₩1M"}}},
      {l:"Enter the housing lottery",s:"Win it and life's changed",run:()=>{if(chance(.12+st.luck/300)){A.house="Housing-lottery apartment";A.flags.cheongyak=1;A.asset+=A.sal*.3*4+65000;A.debt+=35000;return {t:"Beat 312-to-1 odds and won!",fx:"Got a home · Net worth +₩300M"}}A.asset+=A.sal*.3*4;return {t:"Applied 5 times, lost 5 times. At least you saved.",fx:"Assets up"}}},
      {l:"Go all in on an apartment",s:"Now or never",run:()=>{A.house="All-in apartment";A.debt+=45000;const m=clamp(1.1+randn()*.3,.7,1.8);A.asset=A.asset-15000+A.sal*.15*4+60000*m;A.flags.youngkkeul=1;A.happy-=8;return {t:m>=1.2?"Home prices went up. The interest is scary, but you're grinning.":m>=.95?"Home price flat. Loan interest, also flat.":"Home prices dropped. Half your paycheck goes to interest.",fx:`Home value ${m>=1?'+':''}${Math.round((m-1)*100)}%`}}},
      {l:"Illegal sports betting jackpot",s:S.flags.gambleWin?"You never forgot that high school rush":"Jackpot, broke, or a record",run:()=>{const save=A.sal*.3*4;A.asset+=save;A.flags.toto=1;const r=R()-st.luck/500-(S.flags.gambleWin?.04:0);
@@ -2810,7 +2810,7 @@ function afterChapter(key){
   const queue=[];
   if(['twenty','firstjob','money','career','love'].includes(key)&&R()<.25){const pool=SHOCKS.filter(x=>x.need(A));if(pool.length)queue.push('shock')}
   if(['firstjob','money','career'].includes(key)&&(A.booms||[]).length<2&&R()<.5&&pickBoom())queue.push('boom');
-  if(key!=='love'&&!A.flags.lotto1&&R()<.01+S.st.luck/12000)queue.push('windfall');
+  if(key!=='love'&&!A.flags.lotto1&&R()<.0003+S.st.luck/400000)queue.push('windfall');
   if(['money','love'].includes(key)&&!A.flags.parentHelp&&R()<(REG().parent||0))queue.push('parent');
   const next=()=>{
     const q=queue.shift();
