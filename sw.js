@@ -1,5 +1,5 @@
 // 한국에서 살아남기 서비스워커: 오프라인 실행 + 빠른 로딩
-const VER='ks-v1';
+const VER='ks-v2';
 const CORE=['./','index.html','zh/','zh/index.html','en/','en/index.html','favicon.svg','manifest.webmanifest','zh/manifest.webmanifest','en/manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/maskable-512.png','icons/apple-touch-icon.png'];
 
 self.addEventListener('install',e=>{
