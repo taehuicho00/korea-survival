@@ -12,6 +12,12 @@
 <meta property="og:url" content="https://taehuicho00.github.io/korea-survival/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#F2EFE6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="살아남기">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -1595,7 +1601,7 @@ if(typeof document!=='undefined'&&document.addEventListener)document.addEventLis
   const x=t.closest('.dxt');if(x){const box=x.closest('.dexbox');box.querySelectorAll('.dxt.sel').forEach(y=>y.classList.remove('sel'));x.classList.add('sel');const d=box.querySelector('.dxd');d.innerHTML=`<strong>${esc(x.dataset.n)}</strong><span>${esc(x.dataset.d)}</span>`;d.classList.add('on')}});
 const DON={bank:'우리은행',no:'1002-345-569373',raw:'1002345569373'};
 const donOn=()=>typeof document!=='undefined'&&!/^(zh|en)/.test((document.documentElement&&document.documentElement.lang)||'');
-const LANG_SW=()=>'<span class="tops">'+(/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="zh/" lang="zh-CN">中文</a><a class="langsw" href="en/" lang="en">EN</a></span>':'')+(donOn()?'<button type="button" class="langsw don" id="donbtn">개발자 후원하기</button>':'')+'</span>';
+const LANG_SW=()=>'<span class="tops">'+(/github\.io$/.test(location.hostname)?'<span class="langs"><a class="langsw" href="zh/" lang="zh-CN">中文</a><a class="langsw" href="en/" lang="en">EN</a></span>':'')+(donOn()?'<button type="button" class="langsw don" id="donbtn">개발자 후원하기</button>':'')+'<button type="button" class="langsw inst" id="instbtn">📱 앱으로 설치</button></span>';
 function showDonate(){const mob=typeof navigator!=='undefined'&&/Android|iPhone|iPad/i.test(navigator.userAgent||'');
   openSheet(`<span class="label">개발자 후원하기</span><h2 class="sheet-title">커피 한 잔 사 주기 ☕</h2><p class="lead">${esc('재밌게 즐기셨다면 개발자에게 커피 한 잔 부탁드려요. 후원금은 새 직업 · 이벤트 업데이트에 쓰여요.')}</p>
   <div class="donbox"><div><small>${esc(DON.bank)}</small><b class="num">${esc(DON.no)}</b></div><button type="button" class="btn small" id="doncopy">${esc('계좌 복사')}</button></div>
@@ -3194,5 +3200,14 @@ window.claude?.hot?.snapshot?.(()=>({S}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
 
+<style>.langsw.inst{display:none;cursor:pointer;font:inherit;font-size:12px;font-weight:700;text-align:center;padding:5px 10px}html.can-install .langsw.inst{display:block}@media (display-mode: standalone){.langsw.inst{display:none!important}}</style>
+<script>
+(function(){var dp=null;
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(function(){});
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;document.documentElement.classList.add('can-install')});
+window.addEventListener('appinstalled',function(){dp=null;document.documentElement.classList.remove('can-install')});
+document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('#instbtn');if(!b||!dp)return;dp.prompt();dp.userChoice.finally(function(){dp=null;document.documentElement.classList.remove('can-install')})});
+})();
+</script>
 </body>
 </html>
